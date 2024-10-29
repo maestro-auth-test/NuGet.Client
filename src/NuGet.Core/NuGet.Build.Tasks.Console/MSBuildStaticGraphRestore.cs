@@ -525,6 +525,11 @@ namespace NuGet.Build.Tasks.Console
             if (string.IsNullOrEmpty(targetFrameworks))
             {
                 targetFrameworks = project.GetProperty("TargetFramework");
+                if (targetFrameworks.Contains(';'))
+                {
+                    var error = RestoreLogMessage.CreateError(NuGetLogCode.NU1001, string.Format(CultureInfo.CurrentCulture, Strings.Error_TargetFrameworkWithSemicolon, targetFrameworks));
+                    throw new RestoreCommandException(error);
+                }
             }
             var projectFrameworkStrings = MSBuildStringUtility.Split(targetFrameworks);
             return projectFrameworkStrings;

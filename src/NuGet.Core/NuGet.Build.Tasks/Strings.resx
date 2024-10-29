@@ -229,4 +229,8 @@
     <value>An error occurred starting static graph-based restore. {0}. Please file an issue at https://github.com/NuGet/Home</value>
     <comment>0 - The exception message</comment>
   </data>
+  <data name="Error_TargetFrameworkWithSemicolon" xml:space="preserve">
+    <value>The TargetFramework value '{0}' is not valid. To multi-target, use the 'TargetFrameworks' property instead.</value>
+    <comment>0 - Is a string with a list of target frameworks separated by a semi colon</comment>
+  </data>
 </root>

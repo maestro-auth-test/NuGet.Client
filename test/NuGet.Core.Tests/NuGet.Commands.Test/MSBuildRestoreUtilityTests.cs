@@ -3400,6 +3400,36 @@ namespace NuGet.Commands.Test
         }
 
         [Fact]
+        public void MSBuildRestoreUtility_GetPackageSpec_InvalidTargetFramework()
+        {
+            // Arrange
+            var targetFramework = "netstandard2.0;net7.0";
+            var items = new[] {
+                 CreateItems(new Dictionary<string, string>()
+                {
+                    { "Type", "ProjectSpec" },
+                    { "ProjectName", "a" },
+                    { "ProjectStyle", "PackageReference" },
+                    { "ProjectUniqueName", "a" },
+                }),
+            CreateItems(new Dictionary<string, string>()
+                {
+                    { "Type", "TargetFrameworkInformation" },
+                    { "AssetTargetFallback", "" },
+                    { "PackageTargetFallback", "" },
+                    { "ProjectUniqueName", "a" },
+                    { "TargetFramework", targetFramework },
+                    { "TargetPlatformIdentifier", "" },
+                    { "TargetPlatformMoniker", "" },
+                    { "TargetPlatformVersion", "" },
+                })
+            };
+
+            // Act & Assert
+            var exception = Assert.Throws<RestoreCommandException>(() => MSBuildRestoreUtility.GetPackageSpec(items));
+        }
+
+        [Fact]
         public void MSBuildRestoreUtility_AddPackageDownloads_NoVersion_ThrowsException()
         {
             // Arrange

@@ -808,6 +808,15 @@ namespace NuGet.Commands {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The TargetFramework value &apos;{0}&apos; is not valid. To multi-target, use the &apos;TargetFrameworks&apos; property instead..
+        /// </summary>
+        internal static string Error_TargetFrameworkWithSemicolon {
+            get {
+                return ResourceManager.GetString("Error_TargetFrameworkWithSemicolon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid tools package {0} {1}. Tools packages cannot contain more than one PackageType..
         /// </summary>
         internal static string Error_ToolsPackageWithExtraPackageTypes {

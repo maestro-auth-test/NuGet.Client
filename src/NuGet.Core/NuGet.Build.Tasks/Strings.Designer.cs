@@ -207,6 +207,15 @@ namespace NuGet.Build.Tasks {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The TargetFramework value &apos;{0}&apos; is not valid. To multi-target, use the &apos;TargetFrameworks&apos; property instead..
+        /// </summary>
+        public static string Error_TargetFrameworkWithSemicolon {
+            get {
+                return ResourceManager.GetString("Error_TargetFrameworkWithSemicolon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ProjectReference &apos;{0}&apos; was resolved using &apos;{1}&apos; instead of the project target framework &apos;{2}&apos;. This project may not be fully compatible with your project..
         /// </summary>
         public static string ImportsFallbackWarning {

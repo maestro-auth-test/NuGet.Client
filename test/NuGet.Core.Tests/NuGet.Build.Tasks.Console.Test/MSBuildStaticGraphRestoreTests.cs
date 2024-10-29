@@ -101,6 +101,19 @@ namespace NuGet.Build.Tasks.Console.Test
             actual.Should().BeEquivalentTo(expected);
         }
 
+        [Theory]
+        [InlineData("net40;net45")]
+        [InlineData("net40;net45 ; netstandard2.0 ")]
+        public void GetOriginalTargetFramework_WhenTargetFramworkSpecified_HasCorrectTargetFramework(string targetFrameworks)
+        {
+            var project = new MockMSBuildProject(new Dictionary<string, string>
+            {
+                ["TargetFramework"] = targetFrameworks
+            });
+
+            Assert.Throws<RestoreCommandException>(() => MSBuildStaticGraphRestore.GetTargetFrameworkStrings(project));
+        }
+
         [Fact]
         public void GetPackageDownloads_WhenDuplicatesExist_DuplicatesIgnored()
         {
