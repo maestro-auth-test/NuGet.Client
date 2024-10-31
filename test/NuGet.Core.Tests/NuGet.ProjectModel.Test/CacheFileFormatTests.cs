@@ -115,8 +115,8 @@ namespace NuGet.ProjectModel.Test
   ],
   ""logs"": [
     {{
-      ""code"": ""NU1000"",
       ""level"": ""Information"",
+      ""code"": ""NU1000"",
       ""message"": ""Test""
     }}
   ]

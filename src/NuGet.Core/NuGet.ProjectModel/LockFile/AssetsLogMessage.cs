@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using NuGet.Common;
 using NuGet.Shared;
 
@@ -10,19 +12,33 @@ namespace NuGet.ProjectModel
 {
     public class AssetsLogMessage : IAssetsLogMessage, IEquatable<IAssetsLogMessage>
     {
-
+        [JsonConverter(typeof(ToStringConverter<LogLevel>))]
         public LogLevel Level { get; }
+
+        [JsonConverter(typeof(ToStringConverter<NuGetLogCode>))]
         public NuGetLogCode Code { get; }
         public string Message { get; }
         public string ProjectPath { get; set; }
-        public WarningLevel WarningLevel { get; set; } = WarningLevel.Severe; //setting default to Severe as 0 implies show no warnings
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public WarningLevel WarningLevel { get; set; }
         public string FilePath { get; set; }
         public string LibraryId { get; set; }
         public IReadOnlyList<string> TargetGraphs { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public int StartLineNumber { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public int StartColumnNumber { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public int EndLineNumber { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public int EndColumnNumber { get; set; }
+
+        public AssetsLogMessage() { }
 
         public static IAssetsLogMessage Create(IRestoreLogMessage logMessage)
         {
@@ -53,6 +69,11 @@ namespace NuGet.ProjectModel
                 {
                     targetGraph
                 };
+            }
+
+            if (logLevel == LogLevel.Warning)
+            {
+                WarningLevel = WarningLevel.Severe; // setting default to Severe as 0 implies show no warnings
             }
         }
 
@@ -105,6 +126,26 @@ namespace NuGet.ProjectModel
             combiner.AddObject((int)Code);
 
             return combiner.CombinedHash;
+        }
+
+        private class ToStringConverter<T> : JsonConverter<T>
+        {
+            public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+            {
+                return default;
+            }
+
+            public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
+            {
+                if (value == null)
+                {
+                    writer.WriteNullValue();
+                }
+                else
+                {
+                    writer.WriteStringValue(value.ToString());
+                }
+            }
         }
     }
 }
