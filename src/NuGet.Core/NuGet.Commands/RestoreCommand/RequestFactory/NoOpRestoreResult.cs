@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Common;
@@ -22,7 +23,7 @@ namespace NuGet.Commands
                 cacheFile: cacheFile, cacheFilePath: cacheFilePath, packagesLockFilePath: null, packagesLockFile: null, dependencyGraphSpecFilePath: null, dependencyGraphSpec: null, projectStyle: projectStyle, elapsedTime: elapsedTime)
         {
             _lockFileLazy = lockFileLazy ?? throw new ArgumentNullException(nameof(lockFileLazy));
-            LogMessages = (IList<IAssetsLogMessage>)(cacheFile?.LogMessages ?? new List<AssetsLogMessage>());
+            LogMessages = cacheFile?.LogMessages?.Cast<IAssetsLogMessage>().ToList() ?? new List<IAssetsLogMessage>();
         }
 
         public override LockFile LockFile => _lockFileLazy.Value;

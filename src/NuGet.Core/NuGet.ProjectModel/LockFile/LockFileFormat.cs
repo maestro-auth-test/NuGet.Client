@@ -259,7 +259,7 @@ namespace NuGet.ProjectModel
                 CentralTransitiveDependencyGroups = centralTransitiveDependencyGroups
             };
 
-            lockFile.LogMessages = (IList<IAssetsLogMessage>)logMessage;
+            lockFile.LogMessages = logMessage?.Cast<IAssetsLogMessage>().ToList();
 
             return lockFile;
         }
