@@ -157,6 +157,7 @@ namespace NuGet.Commands
         public async Task<RestoreResult> ExecuteAsync(CancellationToken token)
         {
             Stopwatch restoreTime = null;
+
 #pragma warning disable CA1031 // Do not catch general exception types
             try
             {
@@ -186,7 +187,7 @@ namespace NuGet.Commands
                         telemetry.TelemetryEvent[IsCentralPackageTransitivePinningEnabled] = isCentralPackageTransitivePinningEnabled;
                     }
 
-                    var restoreTime = Stopwatch.StartNew();
+                    restoreTime = Stopwatch.StartNew();
 
                     // Local package folders (non-sources)
                     var localRepositories = new List<NuGetv3LocalRepository>
@@ -521,7 +522,8 @@ namespace NuGet.Commands
                         AuditRan = auditRan
                     };
                 }
-            catch (Exception e)
+            }
+            catch (Exception ex)
             {
                 static ILogMessage UnwrapToLogMessage(Exception e)
                 {
@@ -581,7 +583,6 @@ namespace NuGet.Commands
                     elapsedTime: restoreTime != null ? restoreTime.Elapsed : new TimeSpan(0));
             }
 #pragma warning restore CA1031 // Do not catch general exception types
-        }
         }
 
         /// <summary>Run NuGetAudit on the project's resolved restore graphs, and log messages and telemetry with the results.</summary>
@@ -1641,82 +1642,82 @@ namespace NuGet.Commands
         }
 
         private static class TraceEvents
-    {
-        private const string EventNameBuildAssetsFile = "RestoreCommand/BuildAssetsFile";
-        private const string EventNameBuildRestoreGraph = "RestoreCommand/BuildRestoreGraph";
-        private const string EventNameCalcNoOpRestore = "RestoreCommand/CalcNoOpRestore";
-
-        public static void BuildAssetsFileStart(string filePath)
         {
-            var eventOptions = new EventSourceOptions
+            private const string EventNameBuildAssetsFile = "RestoreCommand/BuildAssetsFile";
+            private const string EventNameBuildRestoreGraph = "RestoreCommand/BuildRestoreGraph";
+            private const string EventNameCalcNoOpRestore = "RestoreCommand/CalcNoOpRestore";
+
+            public static void BuildAssetsFileStart(string filePath)
             {
-                Keywords = NuGetEventSource.Keywords.Performance |
-                            NuGetEventSource.Keywords.Restore,
-                Opcode = EventOpcode.Start
-            };
+                var eventOptions = new EventSourceOptions
+                {
+                    Keywords = NuGetEventSource.Keywords.Performance |
+                                NuGetEventSource.Keywords.Restore,
+                    Opcode = EventOpcode.Start
+                };
 
-            NuGetEventSource.Instance.Write(EventNameBuildAssetsFile, eventOptions, new { FilePath = filePath });
-        }
+                NuGetEventSource.Instance.Write(EventNameBuildAssetsFile, eventOptions, new { FilePath = filePath });
+            }
 
-        public static void BuildAssetsFileStop(string filePath)
-        {
-            var eventOptions = new EventSourceOptions
+            public static void BuildAssetsFileStop(string filePath)
             {
-                Keywords = NuGetEventSource.Keywords.Performance |
-                            NuGetEventSource.Keywords.Restore,
-                Opcode = EventOpcode.Stop
-            };
+                var eventOptions = new EventSourceOptions
+                {
+                    Keywords = NuGetEventSource.Keywords.Performance |
+                                NuGetEventSource.Keywords.Restore,
+                    Opcode = EventOpcode.Stop
+                };
 
-            NuGetEventSource.Instance.Write(EventNameBuildAssetsFile, eventOptions, new { FilePath = filePath });
-        }
+                NuGetEventSource.Instance.Write(EventNameBuildAssetsFile, eventOptions, new { FilePath = filePath });
+            }
 
-        public static void BuildRestoreGraphStart(string filePath)
-        {
-            var eventOptions = new EventSourceOptions
+            public static void BuildRestoreGraphStart(string filePath)
             {
-                Keywords = NuGetEventSource.Keywords.Performance |
-                            NuGetEventSource.Keywords.Restore,
-                Opcode = EventOpcode.Start
-            };
+                var eventOptions = new EventSourceOptions
+                {
+                    Keywords = NuGetEventSource.Keywords.Performance |
+                                NuGetEventSource.Keywords.Restore,
+                    Opcode = EventOpcode.Start
+                };
 
-            NuGetEventSource.Instance.Write(EventNameBuildRestoreGraph, eventOptions, new { FilePath = filePath });
-        }
+                NuGetEventSource.Instance.Write(EventNameBuildRestoreGraph, eventOptions, new { FilePath = filePath });
+            }
 
-        public static void BuildRestoreGraphStop(string filePath)
-        {
-            var eventOptions = new EventSourceOptions
+            public static void BuildRestoreGraphStop(string filePath)
             {
-                Keywords = NuGetEventSource.Keywords.Performance |
-                            NuGetEventSource.Keywords.Restore,
-                Opcode = EventOpcode.Stop
-            };
+                var eventOptions = new EventSourceOptions
+                {
+                    Keywords = NuGetEventSource.Keywords.Performance |
+                                NuGetEventSource.Keywords.Restore,
+                    Opcode = EventOpcode.Stop
+                };
 
-            NuGetEventSource.Instance.Write(EventNameBuildRestoreGraph, eventOptions, new { FilePath = filePath });
-        }
+                NuGetEventSource.Instance.Write(EventNameBuildRestoreGraph, eventOptions, new { FilePath = filePath });
+            }
 
-        public static void CalcNoOpRestoreStart(string filePath)
-        {
-            var eventOptions = new EventSourceOptions
+            public static void CalcNoOpRestoreStart(string filePath)
             {
-                Keywords = NuGetEventSource.Keywords.Performance |
-                            NuGetEventSource.Keywords.Restore,
-                Opcode = EventOpcode.Start
-            };
+                var eventOptions = new EventSourceOptions
+                {
+                    Keywords = NuGetEventSource.Keywords.Performance |
+                                NuGetEventSource.Keywords.Restore,
+                    Opcode = EventOpcode.Start
+                };
 
-            NuGetEventSource.Instance.Write(EventNameCalcNoOpRestore, eventOptions, new { FilePath = filePath });
-        }
+                NuGetEventSource.Instance.Write(EventNameCalcNoOpRestore, eventOptions, new { FilePath = filePath });
+            }
 
-        public static void CalcNoOpRestoreStop(string filePath)
-        {
-            var eventOptions = new EventSourceOptions
+            public static void CalcNoOpRestoreStop(string filePath)
             {
-                Keywords = NuGetEventSource.Keywords.Performance |
-                            NuGetEventSource.Keywords.Restore,
-                Opcode = EventOpcode.Stop
-            };
+                var eventOptions = new EventSourceOptions
+                {
+                    Keywords = NuGetEventSource.Keywords.Performance |
+                                NuGetEventSource.Keywords.Restore,
+                    Opcode = EventOpcode.Stop
+                };
 
-            NuGetEventSource.Instance.Write(EventNameCalcNoOpRestore, eventOptions, new { FilePath = filePath });
+                NuGetEventSource.Instance.Write(EventNameCalcNoOpRestore, eventOptions, new { FilePath = filePath });
+            }
         }
     }
-}
 }
