@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Internal.NuGet.Testing.SignedPackages;
+using Moq;
 using Newtonsoft.Json.Linq;
 using NuGet.Commands.Test;
 using NuGet.Common;
@@ -4238,6 +4239,44 @@ namespace NuGet.Commands.FuncTest
             logger.Errors.Should().Be(0, because: logger.ShowErrors());
             logger.Warnings.Should().Be(1, because: logger.ShowWarnings());
         }
+
+        [Fact]
+        public async Task ExecuteAsync_LoggerThatThrowsAnException_HandlesIt()
+        {
+            // Arrange
+            string exceptionMessage = "test exception";
+            using var pathContext = new SimpleTestPathContext();
+            var errorMessages = new List<string>();
+            var packageA = new SimpleTestPackageContext("a", "1.0.0");
+            packageA.AddFile("lib/net472/a.dll");
+            await SimpleTestPackageUtility.CreateFolderFeedV3Async(
+                pathContext.PackageSource,
+                PackageSaveMode.Defaultv3,
+                packageA);
+
+            var project1spec = ProjectTestHelpers.GetPackageSpec("Project1",
+                pathContext.SolutionRoot,
+                framework: "net5.0",
+                dependencyName: "a",
+                useAssetTargetFallback: true,
+                assetTargetFallbackFrameworks: "net472",
+                asAssetTargetFallback: false);
+
+            var mockLogger = new Mock<ILogger>();
+            mockLogger.Setup(logger => logger.LogAsync(It.IsAny<IRestoreLogMessage>()))
+                .ThrowsAsync(new Exception(exceptionMessage));
+            var restoreRequest = ProjectTestHelpers.CreateRestoreRequest(pathContext, mockLogger.Object, project1spec);
+            var restoreCommand = new RestoreCommand(restoreRequest);
+
+            // Act
+            var restoreResult = await restoreCommand.ExecuteAsync(CancellationToken.None);
+
+            // Assert
+            Assert.Equal(1, restoreResult.LogMessages.Count);
+            Assert.Equal(NuGetLogCode.NU1000, restoreResult.LogMessages.First().Code);
+            Assert.Equal(exceptionMessage, restoreResult.LogMessages.First().Message);
+        }
+
         private static void CreateFakeProjectFile(PackageSpec project2spec)
         {
             Directory.CreateDirectory(Path.GetDirectoryName(project2spec.RestoreMetadata.ProjectUniqueName));
