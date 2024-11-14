@@ -266,9 +266,6 @@ namespace NuGet.Commands
                                 _request.Project.RestoreMetadata.UsingMicrosoftNETSdk,
                                 SdkAnalysisLevelMinimums.HttpErrorSdkAnalysisLevelMinimumValue);
 
-                            // Enable new errors and warnings for the current SDK analysis level.
-                            Protocol.Utility.SdkAnalysisLevelUtility.EnableNewErrorsAndWarnings = isErrorEnabled;
-
                             if (isErrorEnabled)
                             {
                                 await _logger.LogAsync(RestoreLogMessage.CreateError(NuGetLogCode.NU1302,
@@ -279,6 +276,19 @@ namespace NuGet.Commands
                                 await _logger.LogAsync(RestoreLogMessage.CreateWarning(NuGetLogCode.NU1803,
                                 string.Format(CultureInfo.CurrentCulture, Strings.Warning_HttpServerUsage, "restore", source.Source)));
                             }
+                        }
+                        else if (source.IsHttps && !source.AllowInsecureConnections)
+                        {
+                            var isErrorEnabled = SdkAnalysisLevelMinimums.IsEnabled(_request.Project.RestoreMetadata.SdkAnalysisLevel,
+                                _request.Project.RestoreMetadata.UsingMicrosoftNETSdk,
+                                SdkAnalysisLevelMinimums.HttpErrorSdkAnalysisLevelMinimumValue);
+
+                            // Enable new errors and warnings for the current SDK analysis level.
+                            Protocol.Utility.SdkAnalysisLevelUtility.EnableNewErrorsAndWarnings = isErrorEnabled;
+                            Protocol.Utility.LogHttpServiceEndPoint.HttpServiceEndPointLoggerDelegate = async (string message) =>
+                            {
+                                await _logger.LogAsync(RestoreLogMessage.CreateError(NuGetLogCode.NU1302, message));
+                            };
                         }
                     }
                 }
