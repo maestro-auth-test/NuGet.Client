@@ -28,6 +28,8 @@ namespace NuGet.Tests.Apex.Daily
                 await CommonUtility.CreatePackageInSourceAsync(testContext.PackageSource, packageName, packageVersion);
 
                 testContext.SolutionService.Build();
+                testContext.NuGetApexTestService.WaitForAutoRestore();
+
                 VisualStudio.AssertNoErrors();
 
                 // Act
@@ -62,6 +64,8 @@ namespace NuGet.Tests.Apex.Daily
                 await CommonUtility.CreatePackageInSourceAsync(testContext.PackageSource, packageName, packageVersion2);
 
                 testContext.SolutionService.Build();
+                testContext.NuGetApexTestService.WaitForAutoRestore();
+
                 VisualStudio.AssertNoErrors();
 
                 // Act
@@ -100,6 +104,8 @@ namespace NuGet.Tests.Apex.Daily
                 await CommonUtility.CreatePackageInSourceAsync(testContext.PackageSource, packageName, packageVersion);
 
                 testContext.SolutionService.Build();
+                testContext.NuGetApexTestService.WaitForAutoRestore();
+
                 VisualStudio.AssertNoErrors();
 
                 // Act
