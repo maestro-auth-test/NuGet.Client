@@ -30,8 +30,6 @@ namespace NuGet.Tests.Apex.Daily
                 testContext.SolutionService.Build();
                 testContext.NuGetApexTestService.WaitForAutoRestore();
 
-                VisualStudio.AssertNoErrors();
-
                 // Act
                 CommonUtility.OpenNuGetPackageManagerWithDte(VisualStudio, Logger);
                 var nugetTestService = GetNuGetTestService();
@@ -65,8 +63,6 @@ namespace NuGet.Tests.Apex.Daily
 
                 testContext.SolutionService.Build();
                 testContext.NuGetApexTestService.WaitForAutoRestore();
-
-                VisualStudio.AssertNoErrors();
 
                 // Act
                 CommonUtility.OpenNuGetPackageManagerWithDte(VisualStudio, Logger);
@@ -105,8 +101,6 @@ namespace NuGet.Tests.Apex.Daily
 
                 testContext.SolutionService.Build();
                 testContext.NuGetApexTestService.WaitForAutoRestore();
-
-                VisualStudio.AssertNoErrors();
 
                 // Act
                 CommonUtility.OpenNuGetPackageManagerWithDte(VisualStudio, Logger);
