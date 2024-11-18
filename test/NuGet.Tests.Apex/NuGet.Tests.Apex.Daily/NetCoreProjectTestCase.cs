@@ -27,8 +27,8 @@ namespace NuGet.Tests.Apex.Daily
                 var packageVersion = "1.0.0";
                 await CommonUtility.CreatePackageInSourceAsync(testContext.PackageSource, packageName, packageVersion);
 
-                testContext.SolutionService.Build();
-                testContext.NuGetApexTestService.WaitForAutoRestore();
+                testContext.Project.Clean();
+                VisualStudio.AssertNoErrors();
 
                 // Act
                 CommonUtility.OpenNuGetPackageManagerWithDte(VisualStudio, Logger);
@@ -61,8 +61,8 @@ namespace NuGet.Tests.Apex.Daily
                 await CommonUtility.CreatePackageInSourceAsync(testContext.PackageSource, packageName, packageVersion1);
                 await CommonUtility.CreatePackageInSourceAsync(testContext.PackageSource, packageName, packageVersion2);
 
-                testContext.SolutionService.Build();
-                testContext.NuGetApexTestService.WaitForAutoRestore();
+                testContext.Project.Clean();
+                VisualStudio.AssertNoErrors();
 
                 // Act
                 CommonUtility.OpenNuGetPackageManagerWithDte(VisualStudio, Logger);
@@ -99,8 +99,8 @@ namespace NuGet.Tests.Apex.Daily
 
                 await CommonUtility.CreatePackageInSourceAsync(testContext.PackageSource, packageName, packageVersion);
 
-                testContext.SolutionService.Build();
-                testContext.NuGetApexTestService.WaitForAutoRestore();
+                testContext.Project.Clean();
+                VisualStudio.AssertNoErrors();
 
                 // Act
                 CommonUtility.OpenNuGetPackageManagerWithDte(VisualStudio, Logger);
