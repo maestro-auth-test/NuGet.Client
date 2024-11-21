@@ -187,6 +187,12 @@ namespace NuGet.Commands
                         telemetry.TelemetryEvent[IsCentralPackageTransitivePinningEnabled] = isCentralPackageTransitivePinningEnabled;
                     }
 
+                    bool auditEnabled = AuditUtility.ParseEnableValue(
+                        _request.Project.RestoreMetadata?.RestoreAuditProperties,
+                        _request.Project.FilePath,
+                        _logger);
+                    telemetry.TelemetryEvent[AuditEnabled] = auditEnabled ? "enabled" : "disabled";
+                    
                     restoreTime = Stopwatch.StartNew();
 
                     // Local package folders (non-sources)
@@ -345,11 +351,6 @@ namespace NuGet.Commands
                         });
                     }
 
-                    bool auditEnabled = AuditUtility.ParseEnableValue(
-                        _request.Project.RestoreMetadata?.RestoreAuditProperties,
-                        _request.Project.FilePath,
-                        _logger);
-                    telemetry.TelemetryEvent[AuditEnabled] = auditEnabled ? "enabled" : "disabled";
                     bool auditRan = false;
                     if (auditEnabled)
                     {
