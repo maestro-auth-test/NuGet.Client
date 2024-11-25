@@ -289,12 +289,12 @@ namespace NuGet.MSSigning.Extensions.FuncTest.Commands
         }
 
         [CIOnlyFact]
-        public async Task MSSignCommand_SignPackageWithSHA1CertificateFingerprint_Raises_WarningAsync()
+        public async Task MSSignCommand_SignPackageWithSHA1CertificateFingerprint_RaisesExceptionAsync()
         {
             var result = await ExecuteMSSignCommandAsync(Common.HashAlgorithmName.SHA1);
 
-            result.Success.Should().BeTrue();
-            result.AllOutput.Should().Contain(_invalidCertificateFingerprintCode);
+            result.Success.Should().BeFalse();
+            result.Errors.Should().Contain(_invalidCertificateFingerprintCode);
         }
 
         [CIOnlyTheory]
