@@ -78,7 +78,12 @@ namespace NuGet.Tests.Apex
 
         public void AssertPackageListIsNullOrEmpty()
         {
-            _uiproject.GetPackageItemsOnInstalledTab().Should().BeNullOrEmpty();
+            _uiproject.GetPackageItemsOnInstalledTab().Should().BeNullOrEmpty("Package items list isn't null or empty on installed tab.");
+        }
+
+        public void AssertPackageListIsNotNullOrEmpty()
+        {
+            _uiproject.GetPackageItemsOnInstalledTab().Should().NotBeNullOrEmpty("Package items list is null or empty on installed tab.");
         }
 
         public bool InstallPackageFromUI(string packageId, string version)
