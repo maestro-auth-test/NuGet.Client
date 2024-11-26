@@ -742,6 +742,42 @@ namespace NuGet.Tests.Apex.Daily
             CommonUtility.AssertPackageNotInAssetsFile(VisualStudio, project, TestPackageName, TestPackageVersionV1, Logger);
         }
 
+        [TestMethod]
+        [Timeout(DefaultTimeout)]
+        public async Task UninstallTopLevelPackageFromUI()
+        {
+            // Arrange
+            var transitivePackageName = "Contoso.B";
+            await CommonUtility.CreateDependenciesPackageInSourceAsync(_pathContext.PackageSource, TestPackageName, TestPackageVersionV1, transitivePackageName, TestPackageVersionV1);
+
+            NuGetApexTestService nugetTestService = GetNuGetTestService();
+
+            var solutionService = VisualStudio.Get<SolutionService>();
+            solutionService.CreateEmptySolution("TestSolution", _pathContext.SolutionRoot);
+            var project = solutionService.AddProject(ProjectLanguage.CSharp, ProjectTemplate.NetCoreClassLib, "Testproject");
+            VisualStudio.ClearOutputWindow();
+            solutionService.SaveAll();
+
+            CommonUtility.OpenNuGetPackageManagerWithDte(VisualStudio, Logger);
+
+            var uiwindow = nugetTestService.GetUIWindowfromProject(project);
+            uiwindow.InstallPackageFromUI(TestPackageName, TestPackageVersionV1);
+            solutionService.Build();
+
+            CommonUtility.AssertPackageReferenceExists(VisualStudio, project, TestPackageName, TestPackageVersionV1, Logger);
+            uiwindow.AssertPackageNameAndType(TestPackageName, NuGet.VisualStudio.PackageLevel.TopLevel);
+            uiwindow.AssertPackageNameAndType(transitivePackageName, NuGet.VisualStudio.PackageLevel.Transitive);
+
+            // Act
+            uiwindow.UninstallPackageFromUI(TestPackageName);
+            solutionService.Build();
+
+            // Assert
+            VisualStudio.AssertNoErrors();
+            uiwindow.AssertPackageListIsNullOrEmpty();
+            CommonUtility.AssertPackageReferenceDoesNotExist(VisualStudio, project, TestPackageName, Logger);
+        }
+
         public override void Dispose()
         {
             _pathContext.Dispose();

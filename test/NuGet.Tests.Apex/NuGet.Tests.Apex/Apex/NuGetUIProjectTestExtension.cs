@@ -76,6 +76,11 @@ namespace NuGet.Tests.Apex
             package.Id.Should().Be(packageId);
         }
 
+        public void AssertPackageListIsNullOrEmpty()
+        {
+            _uiproject.GetPackageItemsOnInstalledTab().Should().BeNullOrEmpty();
+        }
+
         public bool InstallPackageFromUI(string packageId, string version)
         {
             Stopwatch sw = Stopwatch.StartNew();
