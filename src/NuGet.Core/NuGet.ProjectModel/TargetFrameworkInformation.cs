@@ -93,6 +93,15 @@ namespace NuGet.ProjectModel
             }
         }
 
+        public IReadOnlyDictionary<string, PrunedPackageReference> PackagesToPrune
+        {
+            get => _packagesToPrune;
+            init
+            {
+                _packagesToPrune = value ?? ImmutableDictionary<string, PrunedPackageReference>.Empty;
+            }
+        }
+
         /// <summary>
         /// A dictionary of packages to be pruned from the graph.
         /// An item existing in this dictionary means the pruning capability is enabled.

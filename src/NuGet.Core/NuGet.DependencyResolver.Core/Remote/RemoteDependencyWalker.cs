@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,17 +26,21 @@ namespace NuGet.DependencyResolver
             _context = context;
         }
 
-        public async Task<GraphNode<RemoteResolveResult>> WalkAsync(LibraryRange library, NuGetFramework framework, string runtimeIdentifier, RuntimeGraph runtimeGraph, bool recursive)
+        public async Task<GraphNode<RemoteResolveResult>> WalkAsync(LibraryRange library, NuGetFramework framework, string runtimeIdentifier, RuntimeGraph runtimeGraph, IReadOnlyDictionary<string, PrunedPackageReference> prunablePackages)
         {
+            if (library == null) throw new ArgumentNullException(nameof(library));
+            if (framework == null) throw new ArgumentNullException(nameof(framework));
+
             var transitiveCentralPackageVersions = new TransitiveCentralPackageVersions();
             var rootNode = await CreateGraphNodeAsync(
                 libraryRange: library,
                 framework: framework,
                 runtimeName: runtimeIdentifier,
                 runtimeGraph: runtimeGraph,
-                predicate: _ => (recursive ? DependencyResult.Acceptable : DependencyResult.Eclipsed, null),
+                predicate: _ => (DependencyResult.Acceptable, null),
                 outerEdge: null,
                 transitiveCentralPackageVersions: transitiveCentralPackageVersions,
+                prunablePackages: prunablePackages,
                 hasParentNodes: false);
 
             // do not calculate the hashset of the direct dependencies for cases when there are not any elements in the transitiveCentralPackageVersions queue
@@ -56,7 +61,7 @@ namespace NuGet.DependencyResolver
                     // as the nodes are created more parents can be added for a single central transitive node
                     // keep the list of the nodes created and add the parents's references at the end
                     // the parent references are needed to keep track of possible rejected parents
-                    transitiveCentralPackageVersionNodes.Add(await AddTransitiveCentralPackageVersionNodesAsync(rootNode, centralPackageVersionDependency, framework, runtimeIdentifier, runtimeGraph, transitiveCentralPackageVersions));
+                    transitiveCentralPackageVersionNodes.Add(await AddTransitiveCentralPackageVersionNodesAsync(rootNode, centralPackageVersionDependency, framework, runtimeIdentifier, runtimeGraph, prunablePackages, transitiveCentralPackageVersions));
                 }
             }
             transitiveCentralPackageVersionNodes.ForEach(node => transitiveCentralPackageVersions.AddParentsToNode(node));
@@ -72,6 +77,7 @@ namespace NuGet.DependencyResolver
             Func<LibraryRange, (DependencyResult dependencyResult, LibraryDependency conflictingDependency)> predicate,
             GraphEdge<RemoteResolveResult> outerEdge,
             TransitiveCentralPackageVersions transitiveCentralPackageVersions,
+            IReadOnlyDictionary<string, PrunedPackageReference> prunablePackages,
             bool hasParentNodes)
 
         {
@@ -134,6 +140,15 @@ namespace NuGet.DependencyResolver
                         if (!IsDependencyValidForGraph(dependency))
                         {
                             continue;
+                        }
+
+                        if (prunablePackages.TryGetValue(dependency.Name, out PrunedPackageReference prunableVersion))
+                        {
+                            if (dependency.LibraryRange.VersionRange.Satisfies(prunableVersion.VersionRange.MaxVersion))
+                            {
+                                _context.Logger.LogDebug(string.Format(CultureInfo.CurrentCulture, Strings.RestoreDebugPruningPackageReference, $"{dependency.Name} {dependency.LibraryRange.VersionRange.OriginalString}", prunableVersion.VersionRange.MaxVersion));
+                                continue;
+                            }
                         }
 
                         // Skip dependencies if the dependency edge has 'all' excluded and
@@ -552,6 +567,7 @@ namespace NuGet.DependencyResolver
             NuGetFramework framework,
             string runtimeIdentifier,
             RuntimeGraph runtimeGraph,
+            IReadOnlyDictionary<string, PrunedPackageReference> prunablePackages,
             TransitiveCentralPackageVersions transitiveCentralPackageVersions)
         {
             GraphNode<RemoteResolveResult> node = await CreateGraphNodeAsync(
@@ -562,6 +578,7 @@ namespace NuGet.DependencyResolver
                     predicate: ChainPredicate(_ => (DependencyResult.Acceptable, null), rootNode, centralPackageVersionDependency),
                     outerEdge: null,
                     transitiveCentralPackageVersions: transitiveCentralPackageVersions,
+                    prunablePackages: prunablePackages,
                     hasParentNodes: true);
 
             node.OuterNode = rootNode;

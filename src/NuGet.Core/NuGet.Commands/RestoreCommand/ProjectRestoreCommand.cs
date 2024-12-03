@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -65,8 +66,10 @@ namespace NuGet.Commands
 
                 frameworkTasks.Add(WalkDependenciesAsync(projectRange,
                     pair.Key,
-                    remoteWalker,
-                    context,
+                    runtimeIdentifier: null,
+                    runtimeGraph: RuntimeGraph.Empty,
+                    walker: remoteWalker,
+                    context: context,
                     token: token));
             }
 
@@ -247,21 +250,6 @@ namespace NuGet.Commands
             }
         }
 
-        private Task<RestoreTargetGraph> WalkDependenciesAsync(LibraryRange projectRange,
-            NuGetFramework framework,
-            RemoteDependencyWalker walker,
-            RemoteWalkContext context,
-            CancellationToken token)
-        {
-            return WalkDependenciesAsync(projectRange,
-                framework,
-                runtimeIdentifier: null,
-                runtimeGraph: RuntimeGraph.Empty,
-                walker: walker,
-                context: context,
-                token: token);
-        }
-
         private async Task<RestoreTargetGraph> WalkDependenciesAsync(LibraryRange projectRange,
             NuGetFramework framework,
             string runtimeIdentifier,
@@ -273,6 +261,10 @@ namespace NuGet.Commands
             token.ThrowIfCancellationRequested();
 
             var name = FrameworkRuntimePair.GetTargetGraphName(framework, runtimeIdentifier);
+
+            TargetFrameworkInformation tfi = _request.Project.TargetFrameworks.FirstOrDefault(e => NuGetFramework.Comparer.Equals(e.FrameworkName, framework));
+            IReadOnlyDictionary<string, PrunedPackageReference> prunablePackages = tfi?.PackagesToPrune ?? ImmutableDictionary<string, PrunedPackageReference>.Empty;
+
             var graphs = new List<GraphNode<RemoteResolveResult>>
             {
                 await walker.WalkAsync(
@@ -280,7 +272,7 @@ namespace NuGet.Commands
                 framework,
                 runtimeIdentifier,
                 runtimeGraph,
-                recursive: true)
+                prunablePackages)
             };
 
             // Resolve conflicts

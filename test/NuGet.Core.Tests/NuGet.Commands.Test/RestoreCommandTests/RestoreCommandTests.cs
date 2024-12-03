@@ -3429,7 +3429,9 @@ namespace NuGet.Commands.Test.RestoreCommandTests
                 VersionRange = new VersionRange(new NuGetVersion("1.0"))
             };
 
-            return walker.WalkAsync(range, framework, runtimeIdentifier: null, runtimeGraph: null, recursive: true);
+            var prunablePackages = new Dictionary<string, PrunedPackageReference>();
+
+            return walker.WalkAsync(range, framework, runtimeIdentifier: null, runtimeGraph: null, prunablePackages: prunablePackages);
         }
     }
 }

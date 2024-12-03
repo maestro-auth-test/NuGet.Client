@@ -91,7 +91,7 @@ namespace NuGet.Commands
                     hasInstallBeenCalledAlready = true;
                 }
 
-                TargetFrameworkInformation? projectTargetFramework = _request.Project.GetTargetFramework(pair.Framework);
+                TargetFrameworkInformation projectTargetFramework = _request.Project.GetTargetFramework(pair.Framework)!;
 
                 var unresolvedPackages = new HashSet<LibraryRange>();
 
@@ -104,7 +104,7 @@ namespace NuGet.Commands
                     // This is guaranteed to be computed before any graph with a RID, so we can assume this will return a value.
 
                     // PCL Projects with Supports have a runtime graph but no matching framework.
-                    var runtimeGraphPath = projectTargetFramework?.RuntimeIdentifierGraphPath;
+                    var runtimeGraphPath = projectTargetFramework.RuntimeIdentifierGraphPath;
 
                     RuntimeGraph? projectProviderRuntimeGraph = default;
                     if (runtimeGraphPath != null)
@@ -643,7 +643,33 @@ namespace NuGet.Commands
 
                     for (int i = 0; i < refItemResult.Item.Data.Dependencies.Count; i++)
                     {
-                        LibraryDependency dep = refItemResult.Item.Data.Dependencies[i];
+                        LibraryDependency dep = refItemResult.Item.Data.Dependencies[i]; // TODO NK - Ensure no projects are pruned.
+                        bool isPackage = dep.LibraryRange.TypeConstraintAllows(LibraryDependencyTarget.Package);
+                        bool isDirectPackageReferenceFromRootProject = (currentRefRangeIndex == rootProjectRefItem.LibraryRangeIndex) && isPackage;
+
+                        if (projectTargetFramework!.PackagesToPrune.TryGetValue(dep.Name, out PrunedPackageReference? prunableVersion))
+                        {
+                            if (dep.LibraryRange!.VersionRange!.Satisfies(prunableVersion.VersionRange!.MaxVersion!))
+                            {
+                                if (isDirectPackageReferenceFromRootProject)
+                                {
+                                    if (SdkAnalysisLevelMinimums.IsEnabled(
+                                        _request.Project!.RestoreMetadata!.SdkAnalysisLevel,
+                                        _request.Project.RestoreMetadata.UsingMicrosoftNETSdk,
+                                        SdkAnalysisLevelMinimums.DirectPackageReferencePruningWarningMinimumValue))
+                                    {
+                                        _logger.Log(RestoreLogMessage.CreateWarning(NuGetLogCode.NU1510, $"Cannot prune a direct reference {dep.Name}"));
+                                    }
+                                }
+                                else
+                                {
+                                    // TODO NK - double log
+                                    _logger.LogDebug(string.Format(CultureInfo.CurrentCulture, Strings.RestoreDebugPruningPackageReference, $"{dep.Name} {dep.LibraryRange.VersionRange.OriginalString}", prunableVersion.VersionRange.MaxVersion));
+                                    continue;
+                                }
+                            }
+                        }
+
                         LibraryDependencyIndex depIndex = refItemResult.GetDependencyIndexForDependency(i);
 
                         // Skip this node if the VersionRange is null or if its not transitively pinned and PrivateAssets=All
@@ -654,8 +680,7 @@ namespace NuGet.Commands
 
                         VersionRange? pinnedVersionRange = null;
 
-                        bool isPackage = dep.LibraryRange.TypeConstraintAllows(LibraryDependencyTarget.Package);
-                        bool isDirectPackageReferenceFromRootProject = (currentRefRangeIndex == rootProjectRefItem.LibraryRangeIndex) && isPackage;
+
 
                         bool isCentrallyPinnedTransitiveDependency = isCentralPackageTransitivePinningEnabled
                             && !isDirectPackageReferenceFromRootProject
@@ -753,6 +778,16 @@ namespace NuGet.Commands
                         {
                             foreach (var dep in runtimeDependencies)
                             {
+                                if (projectTargetFramework!.PackagesToPrune.TryGetValue(dep.Name, out PrunedPackageReference? prunableVersion))
+                                {
+                                    if (dep.LibraryRange!.VersionRange!.Satisfies(prunableVersion.VersionRange!.MaxVersion!))
+                                    {
+                                        // TODO NK - double log
+                                        _logger.LogDebug(string.Format(CultureInfo.CurrentCulture, Strings.RestoreDebugPruningPackageReference, $"{dep.Name} {dep.LibraryRange.VersionRange.OriginalString}", prunableVersion.VersionRange.MaxVersion));
+                                        continue;
+                                    }
+                                }
+
                                 DependencyGraphItem runtimeDependencyGraphItem = new()
                                 {
                                     LibraryDependency = dep,
@@ -762,7 +797,6 @@ namespace NuGet.Commands
                                     Suppressions = suppressions,
                                     IsDirectPackageReferenceFromRootProject = false,
                                 };
-
                                 refImport.Enqueue(runtimeDependencyGraphItem);
 
                                 _ = findLibraryEntryCache.GetOrAddAsync(

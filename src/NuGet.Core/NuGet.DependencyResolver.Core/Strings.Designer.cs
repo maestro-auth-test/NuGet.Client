@@ -86,5 +86,14 @@ namespace NuGet.DependencyResolver {
                 return ResourceManager.GetString("Log_NoMatchingSourceFoundForPackage", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pruning &apos;{0}&apos;. Maximum version to be pruned is &apos;{1}&apos;..
+        /// </summary>
+        internal static string RestoreDebugPruningPackageReference {
+            get {
+                return ResourceManager.GetString("RestoreDebugPruningPackageReference", resourceCulture);
+            }
+        }
     }
 }

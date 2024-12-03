@@ -16,6 +16,11 @@ namespace NuGet.Commands
         internal static readonly NuGetVersion HttpErrorSdkAnalysisLevelMinimumValue = new("9.0.100");
 
         /// <summary>
+        /// Minimum SDK Analysis Level required for warning for direct PackageReference pruning
+        /// </summary>
+        internal static readonly NuGetVersion DirectPackageReferencePruningWarningMinimumValue = new("10.0.100");
+
+        /// <summary>
         /// Determines whether the feature is enabled based on the SDK analysis level.
         /// </summary>
         /// <param name="sdkAnalysisLevel">The project SdkAnalysisLevel value </param>

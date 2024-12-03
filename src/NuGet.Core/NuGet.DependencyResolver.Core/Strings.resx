@@ -128,4 +128,8 @@
     <value>Package source mapping match not found for package ID '{0}'.</value>
     <comment>{0} - Package id</comment>
   </data>
+  <data name="RestoreDebugPruningPackageReference" xml:space="preserve">
+    <value>Pruning '{0}'. Maximum version to be pruned is '{1}'.</value>
+    <comment>0 - Package ID &amp; Version. 1 - Version</comment>
+  </data>
 </root>

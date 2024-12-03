@@ -298,6 +298,11 @@ namespace NuGet.Common
         NU1509 = 1509,
 
         /// <summary>
+        /// Direct reference to a package that cannot be pruned.
+        /// </summary>
+        NU1510 = 1510,
+
+        /// <summary>
         /// Dependency bumped up
         /// </summary>
         NU1601 = 1601,
