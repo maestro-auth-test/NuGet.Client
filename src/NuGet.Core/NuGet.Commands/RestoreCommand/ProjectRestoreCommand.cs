@@ -263,7 +263,7 @@ namespace NuGet.Commands
             var name = FrameworkRuntimePair.GetTargetGraphName(framework, runtimeIdentifier);
 
             TargetFrameworkInformation tfi = _request.Project.TargetFrameworks.FirstOrDefault(e => NuGetFramework.Comparer.Equals(e.FrameworkName, framework));
-            IReadOnlyDictionary<string, PrunedPackageReference> prunablePackages = tfi?.PackagesToPrune ?? ImmutableDictionary<string, PrunedPackageReference>.Empty;
+            IReadOnlyDictionary<string, PrunePackageReference> prunablePackages = tfi?.PackagesToPrune ?? ImmutableDictionary<string, PrunePackageReference>.Empty;
 
             var graphs = new List<GraphNode<RemoteResolveResult>>
             {

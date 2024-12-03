@@ -455,7 +455,7 @@ public class AuditUtilityTests
 
             LibraryRange restoreTarget = new("proj", new VersionRange(NuGetVersion.Parse("1.0.0")), LibraryDependencyTarget.Project);
 
-            var walkResult = await walker.WalkAsync(restoreTarget, targetFramework, "", RuntimeGraph.Empty, prunablePackages: new Dictionary<string, PrunedPackageReference>());
+            var walkResult = await walker.WalkAsync(restoreTarget, targetFramework, "", RuntimeGraph.Empty, prunablePackages: new Dictionary<string, PrunePackageReference>());
 
             var graph = RestoreTargetGraph.Create(new[] { walkResult }, walkContext, NullLogger.Instance, targetFramework);
 
@@ -582,7 +582,7 @@ public class AuditUtilityTests
                 var walker = new RemoteDependencyWalker(walkContext);
 
                 var targetFramework = FrameworkConstants.CommonFrameworks.Net60;
-                var graph = await walker.WalkAsync(_walkTarget, targetFramework, "", RuntimeGraph.Empty, prunablePackages: new Dictionary<string, PrunedPackageReference>());
+                var graph = await walker.WalkAsync(_walkTarget, targetFramework, "", RuntimeGraph.Empty, prunablePackages: new Dictionary<string, PrunePackageReference>());
 
                 RestoreTargetGraph[] graphs = new[]
                 {

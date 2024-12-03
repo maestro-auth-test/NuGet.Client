@@ -647,7 +647,7 @@ namespace NuGet.Commands
                         bool isPackage = dep.LibraryRange.TypeConstraintAllows(LibraryDependencyTarget.Package);
                         bool isDirectPackageReferenceFromRootProject = (currentRefRangeIndex == rootProjectRefItem.LibraryRangeIndex) && isPackage;
 
-                        if (projectTargetFramework!.PackagesToPrune.TryGetValue(dep.Name, out PrunedPackageReference? prunableVersion))
+                        if (projectTargetFramework!.PackagesToPrune.TryGetValue(dep.Name, out PrunePackageReference? prunableVersion))
                         {
                             if (dep.LibraryRange!.VersionRange!.Satisfies(prunableVersion.VersionRange!.MaxVersion!))
                             {
@@ -658,7 +658,7 @@ namespace NuGet.Commands
                                         _request.Project.RestoreMetadata.UsingMicrosoftNETSdk,
                                         SdkAnalysisLevelMinimums.DirectPackageReferencePruningWarningMinimumValue))
                                     {
-                                        _logger.Log(RestoreLogMessage.CreateWarning(NuGetLogCode.NU1510, $"Cannot prune a direct reference {dep.Name}"));
+                                        _logger.Log(RestoreLogMessage.CreateWarning(NuGetLogCode.NU1510, $"Cannot prune a direct reference {dep.Name}")); // TODO NK
                                     }
                                 }
                                 else
@@ -778,7 +778,7 @@ namespace NuGet.Commands
                         {
                             foreach (var dep in runtimeDependencies)
                             {
-                                if (projectTargetFramework!.PackagesToPrune.TryGetValue(dep.Name, out PrunedPackageReference? prunableVersion))
+                                if (projectTargetFramework!.PackagesToPrune.TryGetValue(dep.Name, out PrunePackageReference? prunableVersion))
                                 {
                                     if (dep.LibraryRange!.VersionRange!.Satisfies(prunableVersion.VersionRange!.MaxVersion!))
                                     {

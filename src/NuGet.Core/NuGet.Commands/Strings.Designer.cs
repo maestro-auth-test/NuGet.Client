@@ -1880,6 +1880,15 @@ namespace NuGet.Commands {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Pruning the package &apos;{0}&apos; from the package graph. Maximum prunable version is &apos;{1}&apos;.
+        /// </summary>
+        internal static string RestoreDebugPruningPackageReference {
+            get {
+                return ResourceManager.GetString("RestoreDebugPruningPackageReference", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Certificate file &apos;{0}&apos; not found. For a list of accepted ways to provide a certificate, visit https://docs.nuget.org/docs/reference/command-line-reference.
         /// </summary>
         internal static string SignCommandCertificateFileNotFound {

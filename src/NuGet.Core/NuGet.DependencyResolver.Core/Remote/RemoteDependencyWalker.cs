@@ -26,7 +26,7 @@ namespace NuGet.DependencyResolver
             _context = context;
         }
 
-        public async Task<GraphNode<RemoteResolveResult>> WalkAsync(LibraryRange library, NuGetFramework framework, string runtimeIdentifier, RuntimeGraph runtimeGraph, IReadOnlyDictionary<string, PrunedPackageReference> prunablePackages)
+        public async Task<GraphNode<RemoteResolveResult>> WalkAsync(LibraryRange library, NuGetFramework framework, string runtimeIdentifier, RuntimeGraph runtimeGraph, IReadOnlyDictionary<string, PrunePackageReference> prunablePackages)
         {
             if (library == null) throw new ArgumentNullException(nameof(library));
             if (framework == null) throw new ArgumentNullException(nameof(framework));
@@ -77,7 +77,7 @@ namespace NuGet.DependencyResolver
             Func<LibraryRange, (DependencyResult dependencyResult, LibraryDependency conflictingDependency)> predicate,
             GraphEdge<RemoteResolveResult> outerEdge,
             TransitiveCentralPackageVersions transitiveCentralPackageVersions,
-            IReadOnlyDictionary<string, PrunedPackageReference> prunablePackages,
+            IReadOnlyDictionary<string, PrunePackageReference> prunablePackages,
             bool hasParentNodes)
 
         {
@@ -142,7 +142,7 @@ namespace NuGet.DependencyResolver
                             continue;
                         }
 
-                        if (prunablePackages.TryGetValue(dependency.Name, out PrunedPackageReference prunableVersion))
+                        if (prunablePackages.TryGetValue(dependency.Name, out PrunePackageReference prunableVersion))
                         {
                             if (dependency.LibraryRange.VersionRange.Satisfies(prunableVersion.VersionRange.MaxVersion))
                             {
@@ -567,7 +567,7 @@ namespace NuGet.DependencyResolver
             NuGetFramework framework,
             string runtimeIdentifier,
             RuntimeGraph runtimeGraph,
-            IReadOnlyDictionary<string, PrunedPackageReference> prunablePackages,
+            IReadOnlyDictionary<string, PrunePackageReference> prunablePackages,
             TransitiveCentralPackageVersions transitiveCentralPackageVersions)
         {
             GraphNode<RemoteResolveResult> node = await CreateGraphNodeAsync(
