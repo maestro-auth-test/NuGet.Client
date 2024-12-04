@@ -658,13 +658,12 @@ namespace NuGet.Commands
                                         _request.Project.RestoreMetadata.UsingMicrosoftNETSdk,
                                         SdkAnalysisLevelMinimums.DirectPackageReferencePruningWarningMinimumValue))
                                     {
-                                        _logger.Log(RestoreLogMessage.CreateWarning(NuGetLogCode.NU1510, $"Cannot prune a direct reference {dep.Name}")); // TODO NK
+                                        _logger.Log(RestoreLogMessage.CreateWarning(NuGetLogCode.NU1510, string.Format(CultureInfo.CurrentCulture, Strings.Error_RestorePruningDirectPackageReference, dep.Name)));
                                     }
                                 }
                                 else
                                 {
-                                    // TODO NK - double log
-                                    _logger.LogDebug(string.Format(CultureInfo.CurrentCulture, Strings.RestoreDebugPruningPackageReference, $"{dep.Name} {dep.LibraryRange.VersionRange.OriginalString}", prunableVersion.VersionRange.MaxVersion));
+                                    _logger.LogDebug(string.Format(CultureInfo.CurrentCulture, Strings.RestoreDebugPruningPackageReference, $"{dep.Name} {dep.LibraryRange.VersionRange.OriginalString}", refItemResult.Item.Key, prunableVersion.VersionRange.MaxVersion));
                                     continue;
                                 }
                             }
@@ -782,8 +781,7 @@ namespace NuGet.Commands
                                 {
                                     if (dep.LibraryRange!.VersionRange!.Satisfies(prunableVersion.VersionRange!.MaxVersion!))
                                     {
-                                        // TODO NK - double log
-                                        _logger.LogDebug(string.Format(CultureInfo.CurrentCulture, Strings.RestoreDebugPruningPackageReference, $"{dep.Name} {dep.LibraryRange.VersionRange.OriginalString}", prunableVersion.VersionRange.MaxVersion));
+                                        _logger.LogDebug(string.Format(CultureInfo.CurrentCulture, Strings.RestoreDebugPruningPackageReference, $"{dep.Name} {dep.LibraryRange.VersionRange.OriginalString}", refItemResult.Item.Key, prunableVersion.VersionRange.MaxVersion));
                                         continue;
                                     }
                                 }
