@@ -2009,9 +2009,10 @@ namespace NuGet.Commands.FuncTest
             result.LockFile.Targets[1].Libraries[1].Dependencies.Should().BeEmpty();
         }
 
-        // Add tests with ranges, in particular where the specified version is in the range, but not the one actually selected.
-        // Add tests with ranges such as floating versions? This is interesting.
-        // TODO NK - Clarify that packages can be pruned from PackageReferences.
+        // TODO NK - Validate project references cannot be pruned.
+        // TODO NK - Add tests with ranges, in particular where the specified version is in the range, but not the one actually selected. Pruning happens at queue time, so it should be a decision *before* choosing to download a package.
+        // TODO NK - Add some tests that verify that *pruned* packages are not downloaded.
+        // TODO NK - Add tests with ranges such as floating versions? This is interesting.
 
         // Here's why package driven dependencies should flow.
         // Say we have P1 -> P2 -> P3 -> A 1.0.0 -> B 2.0.0

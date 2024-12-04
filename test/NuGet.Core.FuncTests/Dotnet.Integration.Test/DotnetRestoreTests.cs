@@ -2795,6 +2795,8 @@ EndGlobal";
             return csprojContents;
         }
 
+        /// ClassLibrary1 -> X 1.0.0 -> Y 1.0.0
+        /// Prune Y 2.0.0
         [Theory]
         [InlineData(true, true)]
         [InlineData(true, false)]
