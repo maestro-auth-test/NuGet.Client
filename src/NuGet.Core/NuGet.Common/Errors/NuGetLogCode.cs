@@ -303,6 +303,11 @@ namespace NuGet.Common
         NU1510 = 1510,
 
         /// <summary>
+        /// Project references cannot be pruned
+        /// </summary>
+        NU1511 = 1511,
+
+        /// <summary>
         /// Dependency bumped up
         /// </summary>
         NU1601 = 1601,

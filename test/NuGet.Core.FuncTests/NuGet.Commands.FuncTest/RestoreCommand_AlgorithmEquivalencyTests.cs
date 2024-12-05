@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -1770,7 +1771,7 @@ namespace NuGet.Commands.FuncTest
         // P -> A 1.0.0 -> B 1.0.0
         // Prune B 1.0.0
         [Fact]
-        public async Task RestoreCommand_WithPrunedPackageReferences_PrunesTransitivesDependencies_AndVerifiesEquivalency()
+        public async Task RestoreCommand_WithPrunePackageReferences_PrunesTransitivesDependencies_AndVerifiesEquivalency()
         {
             using var pathContext = new SimpleTestPathContext();
 
@@ -1814,13 +1815,15 @@ namespace NuGet.Commands.FuncTest
             result.LockFile.Targets[0].Libraries[0].Name.Should().Be("packageA");
             result.LockFile.Targets[0].Libraries[0].Version.Should().Be(new NuGetVersion("1.0.0"));
             result.LockFile.Targets[0].Libraries[0].Dependencies.Should().BeEmpty();
+            ISet<LibraryIdentity> installedPackages = result.GetAllInstalled();
+            installedPackages.Should().HaveCount(1);
         }
 
         // P -> A 1.0.0 -> B 1.0.0
         // P -> C 1.0.0
         // Prune C 1.0.0
         [Fact]
-        public async Task RestoreCommand_WithPrunedPackageReferences_DoesNotPruneDirectDependencies_AndVerifiesEquivalency()
+        public async Task RestoreCommand_WithPrunePackageReferences_DoesNotPruneDirectDependencies_AndVerifiesEquivalency()
         {
             using var pathContext = new SimpleTestPathContext();
 
@@ -1876,13 +1879,15 @@ namespace NuGet.Commands.FuncTest
             result.LockFile.Targets[0].Libraries[0].Dependencies.Should().HaveCount(0);
             result.LockFile.LogMessages.Should().HaveCount(1);
             result.LockFile.LogMessages[0].Code.Should().Be(NuGetLogCode.NU1510);
+            ISet<LibraryIdentity> installedPackages = result.GetAllInstalled();
+            installedPackages.Should().HaveCount(3);
         }
 
         // P -> P2 -> B 1.0.0 -> C 1.0.0
         // P -> A 1.0.0
         // Prune B 1.0.0
         [Fact]
-        public async Task RestoreCommand_WithPrunedPackageReferences_PrunesTransitivesDependenciesThroughProjects_AndVerifiesEquivalency()
+        public async Task RestoreCommand_WithPrunePackageReferences_PrunesTransitivesDependenciesThroughProjects_AndVerifiesEquivalency()
         {
             using var pathContext = new SimpleTestPathContext();
 
@@ -1944,12 +1949,14 @@ namespace NuGet.Commands.FuncTest
             result.LockFile.Targets[0].Libraries[1].Name.Should().Be("Project2");
             result.LockFile.Targets[0].Libraries[1].Version.Should().Be(new NuGetVersion("1.0.0"));
             result.LockFile.Targets[0].Libraries[1].Dependencies.Should().BeEmpty();
+            ISet<LibraryIdentity> installedPackages = result.GetAllInstalled();
+            installedPackages.Should().HaveCount(1);
         }
 
         // P -> A 1.0.0 -> B 1.0.0
         // Prune B 1.0.0
         [Fact]
-        public async Task RestoreCommand_WithMultiTargetedPrunedPackageReferences_PrunesTransitivesDependencies_AndVerifiesEquivalency()
+        public async Task RestoreCommand_WithMultiTargetedPrunePackageReferences_PrunesTransitivesDependencies_AndVerifiesEquivalency()
         {
             using var pathContext = new SimpleTestPathContext();
 
@@ -2007,12 +2014,252 @@ namespace NuGet.Commands.FuncTest
             result.LockFile.Targets[1].Libraries[1].Name.Should().Be("packageB");
             result.LockFile.Targets[1].Libraries[1].Version.Should().Be(new NuGetVersion("1.0.0"));
             result.LockFile.Targets[1].Libraries[1].Dependencies.Should().BeEmpty();
+            ISet<LibraryIdentity> installedPackages = result.GetAllInstalled();
+            installedPackages.Should().HaveCount(2);
         }
 
-        // TODO NK - Validate project references cannot be pruned.
-        // TODO NK - Add tests with ranges, in particular where the specified version is in the range, but not the one actually selected. Pruning happens at queue time, so it should be a decision *before* choosing to download a package.
-        // TODO NK - Add some tests that verify that *pruned* packages are not downloaded.
-        // TODO NK - Add tests with ranges such as floating versions? This is interesting.
+        // P1 -> A 1.0.0 -> B 1.0.0
+        // P1 -> P2 (project)
+        // Prune B 1.0.0
+        [Fact]
+        public async Task RestoreCommand_WithDirectProjectReferenceSpecifiedForPruning_SkipsPruning_AndVerifiesEquivalency()
+        {
+            using var pathContext = new SimpleTestPathContext();
+
+            // Setup packages
+            var packageA = new SimpleTestPackageContext("packageA", "1.0.0")
+            {
+                Dependencies = [new SimpleTestPackageContext("packageB", "1.0.0")]
+            };
+
+            await SimpleTestPackageUtility.CreateFolderFeedV3Async(
+                pathContext.PackageSource,
+                PackageSaveMode.Defaultv3,
+                packageA);
+
+            var rootProject = @"
+        {
+          ""frameworks"": {
+            ""net472"": {
+                ""dependencies"": {
+                        ""packageA"": {
+                            ""version"": ""[1.0.0,)"",
+                            ""target"": ""Package"",
+                        },
+                },
+                ""packagesToPrune"": {
+                    ""packageB"" : ""(,1.0.0]"",
+                    ""Project2"" : ""(,3.0.0]"" 
+                }
+            }
+          }
+        }";
+
+            // Setup project
+            var projectSpec = ProjectTestHelpers.GetPackageSpecWithProjectNameAndSpec("Project1", pathContext.SolutionRoot, rootProject);
+            var projectSpec2 = ProjectTestHelpers.GetPackageSpec("Project2", framework: "net472");
+
+            projectSpec = projectSpec.WithTestProjectReference(projectSpec2);
+
+            // Act & Assert
+            (var result, _) = await ValidateRestoreAlgorithmEquivalency(pathContext, projectSpec);
+            result.LockFile.Targets.Should().HaveCount(1);
+            result.LockFile.Targets[0].Libraries.Should().HaveCount(2);
+            result.LockFile.Targets[0].Libraries[0].Name.Should().Be("packageA");
+            result.LockFile.Targets[0].Libraries[0].Version.Should().Be(new NuGetVersion("1.0.0"));
+            result.LockFile.Targets[0].Libraries[0].Dependencies.Should().BeEmpty();
+            result.LockFile.Targets[1].Libraries[1].Name.Should().Be("Project2");
+            result.LockFile.Targets[1].Libraries[1].Version.Should().Be(new NuGetVersion("1.0.0"));
+            result.LockFile.Targets[1].Libraries[1].Dependencies.Should().BeEmpty();
+            result.LockFile.LogMessages.Should().HaveCount(1);
+            result.LockFile.LogMessages[0].Code.Should().Be(NuGetLogCode.NU1511);
+            ISet<LibraryIdentity> installedPackages = result.GetAllInstalled();
+            installedPackages.Should().HaveCount(1);
+        }
+
+        // P1 -> A 1.0.0 -> B 1.0.0
+        // P1 -> P2 (project) -> P3 (project)
+        // Prune B 1.0.0
+        [Fact]
+        public async Task RestoreCommand_WithTransitiveProjectReferenceSpecifiedForPruning_SkipsPruning_AndVerifiesEquivalency()
+        {
+            using var pathContext = new SimpleTestPathContext();
+
+            // Setup packages
+            var packageA = new SimpleTestPackageContext("packageA", "1.0.0")
+            {
+                Dependencies = [new SimpleTestPackageContext("packageB", "1.0.0")]
+            };
+
+            await SimpleTestPackageUtility.CreateFolderFeedV3Async(
+                pathContext.PackageSource,
+                PackageSaveMode.Defaultv3,
+                packageA);
+
+            var rootProject = @"
+        {
+          ""frameworks"": {
+            ""net472"": {
+                ""dependencies"": {
+                        ""packageA"": {
+                            ""version"": ""[1.0.0,)"",
+                            ""target"": ""Package"",
+                        },
+                },
+                ""packagesToPrune"": {
+                    ""packageB"" : ""(,1.0.0]"",
+                    ""Project3"" : ""(,3.0.0]"" 
+                }
+            }
+          }
+        }";
+
+            // Setup project
+            var projectSpec = ProjectTestHelpers.GetPackageSpecWithProjectNameAndSpec("Project1", pathContext.SolutionRoot, rootProject);
+            var projectSpec2 = ProjectTestHelpers.GetPackageSpec("Project2", framework: "net472");
+            var projectSpec3 = ProjectTestHelpers.GetPackageSpec("Project3", framework: "net472");
+
+            projectSpec2 = projectSpec2.WithTestProjectReference(projectSpec3);
+            projectSpec = projectSpec.WithTestProjectReference(projectSpec2);
+
+            // Act & Assert
+            (var result, _) = await ValidateRestoreAlgorithmEquivalency(pathContext, projectSpec);
+            result.LockFile.Targets.Should().HaveCount(1);
+            result.LockFile.Targets[0].Libraries.Should().HaveCount(2);
+            result.LockFile.Targets[0].Libraries[0].Name.Should().Be("packageA");
+            result.LockFile.Targets[0].Libraries[0].Version.Should().Be(new NuGetVersion("1.0.0"));
+            result.LockFile.Targets[0].Libraries[0].Dependencies.Should().BeEmpty();
+            result.LockFile.Targets[1].Libraries[1].Name.Should().Be("Project2");
+            result.LockFile.Targets[1].Libraries[1].Version.Should().Be(new NuGetVersion("1.0.0"));
+            result.LockFile.Targets[1].Libraries[1].Dependencies.Should().HaveCount(1);
+            result.LockFile.Targets[2].Libraries[1].Name.Should().Be("Project3");
+            result.LockFile.Targets[2].Libraries[1].Version.Should().Be(new NuGetVersion("1.0.0"));
+            result.LockFile.Targets[2].Libraries[1].Dependencies.Should().BeEmpty();
+            result.LockFile.LogMessages.Should().HaveCount(1);
+            result.LockFile.LogMessages[0].Code.Should().Be(NuGetLogCode.NU1511);
+            ISet<LibraryIdentity> installedPackages = result.GetAllInstalled();
+            installedPackages.Should().HaveCount(2);
+        }
+
+        // P -> A 1.0.0 -> B 1.0.0
+        // Prune B 1.0.0
+        [Fact]
+        public async Task RestoreCommand_WithPrunePackageReferences_AndMissingVersion_PrunesTransitivesDependencies_AndVerifiesEquivalency()
+        {
+            using var pathContext = new SimpleTestPathContext();
+
+            // Setup packages
+            var packageA = new SimpleTestPackageContext("packageA", "1.0.0")
+            {
+                Dependencies = [new SimpleTestPackageContext("packageB", "1.0.0")]
+            };
+            var packageB200 = new SimpleTestPackageContext("packageA", "2.0.0");
+
+            await SimpleTestPackageUtility.CreatePackagesWithoutDependenciesAsync(
+                pathContext.PackageSource,
+                packageA,
+                packageB200);
+
+            var rootProject = @"
+        {
+          ""frameworks"": {
+            ""net472"": {
+                ""dependencies"": {
+                        ""packageA"": {
+                            ""version"": ""[1.0.0,)"",
+                            ""target"": ""Package"",
+                        },
+                },
+                ""packagesToPrune"": {
+                    ""packageB"" : ""(,1.0.0]"" 
+                }
+            },
+            ""net48"": {
+                ""dependencies"": {
+                        ""packageA"": {
+                            ""version"": ""[1.0.0,)"",
+                            ""target"": ""Package"",
+                        },
+                }
+            }
+          }
+        }";
+
+
+            // Setup project
+            var projectSpec = ProjectTestHelpers.GetPackageSpecWithProjectNameAndSpec("Project1", pathContext.SolutionRoot, rootProject);
+
+            // Act & Assert
+            (var result, _) = await ValidateRestoreAlgorithmEquivalency(pathContext, projectSpec);
+            result.LockFile.Targets.Should().HaveCount(2);
+            result.LockFile.Targets[0].Libraries.Should().HaveCount(1);
+            result.LockFile.Targets[1].Libraries.Should().HaveCount(2);
+            result.LockFile.Targets[0].Libraries[0].Name.Should().Be("packageA");
+            result.LockFile.Targets[0].Libraries[0].Version.Should().Be(new NuGetVersion("1.0.0"));
+            result.LockFile.Targets[0].Libraries[0].Dependencies.Should().BeEmpty();
+            result.LockFile.Targets[1].Libraries[0].Name.Should().Be("packageA");
+            result.LockFile.Targets[1].Libraries[0].Version.Should().Be(new NuGetVersion("1.0.0"));
+            result.LockFile.Targets[1].Libraries[0].Dependencies.Should().HaveCount(1);
+            result.LockFile.Targets[1].Libraries[1].Name.Should().Be("packageB");
+            result.LockFile.Targets[1].Libraries[1].Version.Should().Be(new NuGetVersion("2.0.0"));
+            result.LockFile.Targets[1].Libraries[1].Dependencies.Should().BeEmpty();
+            ISet<LibraryIdentity> installedPackages = result.GetAllInstalled();
+            installedPackages.Should().HaveCount(2);
+        }
+
+        // P -> A 1.0.0 -> B (, 2.0.0]
+        // Prune B 1.0.0
+        // It prunes B 1.0.0, because the missing lower bound means min version. 
+        [Fact]
+        public async Task RestoreCommand_WithPrunePackageReferences_AndMissingLowerBoundVersion_PrunesTransitivesDependencies_AndVerifiesEquivalency()
+        {
+            using var pathContext = new SimpleTestPathContext();
+
+            // Setup packages
+            var packageA = new SimpleTestPackageContext("packageA", "1.0.0")
+            {
+                Dependencies = [new SimpleTestPackageContext("packageB", "(, 2.0.0]")]
+            };
+            var packageB = new SimpleTestPackageContext("packageB", "1.0.0");
+
+            await SimpleTestPackageUtility.CreatePackagesWithoutDependenciesAsync(
+                pathContext.PackageSource,
+                packageA,
+                packageB);
+
+            var rootProject = @"
+        {
+          ""frameworks"": {
+            ""net472"": {
+                ""dependencies"": {
+                        ""packageA"": {
+                            ""version"": ""[1.0.0,)"",
+                            ""target"": ""Package"",
+                        },
+                },
+                ""packagesToPrune"": {
+                    ""packageB"" : ""(,1.0.0]"" 
+                }
+            }
+          }
+        }";
+
+
+            // Setup project
+            var projectSpec = ProjectTestHelpers.GetPackageSpecWithProjectNameAndSpec("Project1", pathContext.SolutionRoot, rootProject);
+
+            // Act & Assert
+            (var result, _) = await ValidateRestoreAlgorithmEquivalency(pathContext, projectSpec);
+            result.LockFile.Targets.Should().HaveCount(1);
+            result.LockFile.Targets[0].Libraries.Should().HaveCount(1);
+            result.LockFile.Targets[0].Libraries.Should().HaveCount(1);
+            result.LockFile.Targets[0].Libraries[0].Name.Should().Be("packageA");
+            result.LockFile.Targets[0].Libraries[0].Version.Should().Be(new NuGetVersion("1.0.0"));
+            result.LockFile.Targets[0].Libraries[0].Dependencies.Should().BeEmpty();
+            ISet<LibraryIdentity> installedPackages = result.GetAllInstalled();
+            installedPackages.Should().HaveCount(1);
+            Assert.Fail("Not written test yet.");
+        }
 
         // Here's why package driven dependencies should flow.
         // Say we have P1 -> P2 -> P3 -> A 1.0.0 -> B 2.0.0
