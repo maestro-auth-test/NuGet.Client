@@ -799,11 +799,20 @@ namespace NuGet.Commands {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A direct PackageReference cannot be pruned, {0}. Consider removing this direct from your dependencies, as it is likely unnecessary..
+        ///   Looks up a localized string similar to A direct PackageReference cannot be pruned, {0}. Consider removing this package from your dependencies, as it is likely unnecessary..
         /// </summary>
         internal static string Error_RestorePruningDirectPackageReference {
             get {
                 return ResourceManager.GetString("Error_RestorePruningDirectPackageReference", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A ProjectReference cannot be pruned, {0}..
+        /// </summary>
+        internal static string Error_RestorePruningProjectReference {
+            get {
+                return ResourceManager.GetString("Error_RestorePruningProjectReference", resourceCulture);
             }
         }
         

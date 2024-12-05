@@ -2057,7 +2057,7 @@ namespace NuGet.Commands.FuncTest
 
             // Setup project
             var projectSpec = ProjectTestHelpers.GetPackageSpecWithProjectNameAndSpec("Project1", pathContext.SolutionRoot, rootProject);
-            var projectSpec2 = ProjectTestHelpers.GetPackageSpec("Project2", framework: "net472");
+            var projectSpec2 = ProjectTestHelpers.GetPackageSpec("Project2", framework: "net472"); // TODO NK - The package spec name seems like it might be wrong. It incldues the csproj.
 
             projectSpec = projectSpec.WithTestProjectReference(projectSpec2);
 

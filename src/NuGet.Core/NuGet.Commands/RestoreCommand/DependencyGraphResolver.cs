@@ -651,12 +651,22 @@ namespace NuGet.Commands
                         {
                             if (dep.LibraryRange!.VersionRange!.Satisfies(prunableVersion.VersionRange!.MaxVersion!))
                             {
-                                if (isDirectPackageReferenceFromRootProject)
+                                if (!isPackage)
                                 {
                                     if (SdkAnalysisLevelMinimums.IsEnabled(
                                         _request.Project!.RestoreMetadata!.SdkAnalysisLevel,
                                         _request.Project.RestoreMetadata.UsingMicrosoftNETSdk,
-                                        SdkAnalysisLevelMinimums.DirectPackageReferencePruningWarningMinimumValue))
+                                        SdkAnalysisLevelMinimums.PruningWarnings))
+                                    {
+                                        _logger.Log(RestoreLogMessage.CreateWarning(NuGetLogCode.NU1511, string.Format(CultureInfo.CurrentCulture, Strings.Error_RestorePruningProjectReference, dep.Name)));
+                                    }
+                                }
+                                else if (isDirectPackageReferenceFromRootProject)
+                                {
+                                    if (SdkAnalysisLevelMinimums.IsEnabled(
+                                        _request.Project!.RestoreMetadata!.SdkAnalysisLevel,
+                                        _request.Project.RestoreMetadata.UsingMicrosoftNETSdk,
+                                        SdkAnalysisLevelMinimums.PruningWarnings))
                                     {
                                         _logger.Log(RestoreLogMessage.CreateWarning(NuGetLogCode.NU1510, string.Format(CultureInfo.CurrentCulture, Strings.Error_RestorePruningDirectPackageReference, dep.Name)));
                                     }
