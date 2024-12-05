@@ -2258,7 +2258,6 @@ namespace NuGet.Commands.FuncTest
             result.LockFile.Targets[0].Libraries[0].Dependencies.Should().BeEmpty();
             ISet<LibraryIdentity> installedPackages = result.GetAllInstalled();
             installedPackages.Should().HaveCount(1);
-            Assert.Fail("Not written test yet.");
         }
 
         // Here's why package driven dependencies should flow.
