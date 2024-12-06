@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -2057,7 +2058,7 @@ namespace NuGet.Commands.FuncTest
 
             // Setup project
             var projectSpec = ProjectTestHelpers.GetPackageSpecWithProjectNameAndSpec("Project1", pathContext.SolutionRoot, rootProject);
-            var projectSpec2 = ProjectTestHelpers.GetPackageSpec("Project2", framework: "net472"); // TODO NK - The package spec name seems like it might be wrong. It incldues the csproj.
+            var projectSpec2 = ProjectTestHelpers.GetPackageSpec("Project2", framework: "net472"); // TODO NK - The package spec name seems like it might be wrong. It incldues the csproj. Does the dependency graph resolver use csproj path as a Name?
 
             projectSpec = projectSpec.WithTestProjectReference(projectSpec2);
 
@@ -2258,6 +2259,154 @@ namespace NuGet.Commands.FuncTest
             result.LockFile.Targets[0].Libraries[0].Dependencies.Should().BeEmpty();
             ISet<LibraryIdentity> installedPackages = result.GetAllInstalled();
             installedPackages.Should().HaveCount(1);
+        }
+
+        [Fact]
+        public async Task RestoreCommand_WithPrunePackageReferences_PrunesRuntimeDependencies_AndVerifiesEquivalency()
+        {
+            // Arrange
+            using var pathContext = new SimpleTestPathContext();
+
+            await SimpleTestPackageUtility.CreateFolderFeedV3Async(
+                pathContext.PackageSource,
+                PackageSaveMode.Defaultv3,
+                new SimpleTestPackageContext("a", "1.0.0")
+                {
+                    Dependencies = [new SimpleTestPackageContext("b", "1.0.0")],
+                    RuntimeJson = @"{
+                  ""runtimes"": {
+                    ""win"": {
+                            ""a"": {
+                                ""runtime.a"": ""1.0.0"",
+                                ""runtime.a.win"": ""1.0.0""
+                            }
+                          }
+                        }
+                  }"
+                },
+                new SimpleTestPackageContext("runtime.a", "1.0.0"),
+                new SimpleTestPackageContext("runtime.a.win", "1.0.0"));
+            var rootProject = @"
+        {
+          ""runtimes"": {
+                        ""win"": {}
+                  },
+          ""frameworks"": {
+            ""net472"": {
+                ""dependencies"": {
+                        ""a"": {
+                            ""version"": ""[1.0.0,)"",
+                            ""target"": ""Package"",
+                        },
+                },
+                ""packagesToPrune"": {
+                    ""runtime.A"" : ""(,1.0.0]"" 
+                }
+            }
+          }
+        }";
+
+            // Setup project
+            var projectSpec = ProjectTestHelpers.GetPackageSpecWithProjectNameAndSpec("Project1", pathContext.SolutionRoot, rootProject);
+
+            // Act & Assert
+            (var result, _) = await ValidateRestoreAlgorithmEquivalency(pathContext, projectSpec);
+            result.Success.Should().BeTrue(because: string.Join(Environment.NewLine, result.LogMessages.Select(e => e.Message)));
+            result.LockFile.Targets.Should().HaveCount(2);
+            result.LockFile.Targets[0].Libraries.Should().HaveCount(2);
+            result.LockFile.Targets[1].Libraries.Should().HaveCount(3);
+
+            result.LockFile.Targets[0].Libraries[0].Name.Should().Be("a");
+            result.LockFile.Targets[0].Libraries[0].Version.Should().Be(new NuGetVersion("1.0.0"));
+            result.LockFile.Targets[0].Libraries[0].Dependencies.Should().HaveCount(1);
+            result.LockFile.Targets[1].Libraries[0].Name.Should().Be("a");
+            result.LockFile.Targets[1].Libraries[0].Version.Should().Be(new NuGetVersion("1.0.0"));
+            result.LockFile.Targets[1].Libraries[0].Dependencies.Should().HaveCount(2);
+            result.LockFile.Targets[0].Libraries[1].Name.Should().Be("b");
+            result.LockFile.Targets[0].Libraries[1].Version.Should().Be(new NuGetVersion("1.0.0"));
+            result.LockFile.Targets[0].Libraries[1].Dependencies.Should().BeEmpty();
+            result.LockFile.Targets[1].Libraries[1].Name.Should().Be("b");
+            result.LockFile.Targets[1].Libraries[1].Version.Should().Be(new NuGetVersion("1.0.0"));
+            result.LockFile.Targets[1].Libraries[1].Dependencies.Should().BeEmpty();
+            result.LockFile.Targets[1].Libraries[2].Name.Should().Be("runtime.a.win");
+            result.LockFile.Targets[1].Libraries[2].Version.Should().Be(new NuGetVersion("1.0.0"));
+            result.LockFile.Targets[1].Libraries[2].Dependencies.Should().BeEmpty();
+
+            ISet<LibraryIdentity> installedPackages = result.GetAllInstalled();
+            installedPackages.Should().HaveCount(3);
+        }
+
+        [Fact]
+        public async Task RestoreCommand_WithPrunePackageReferences_PrunesTransitiveRuntimeDependencies_AndVerifiesEquivalency()
+        {
+            // Arrange
+            using var pathContext = new SimpleTestPathContext();
+
+            await SimpleTestPackageUtility.CreateFolderFeedV3Async(
+                pathContext.PackageSource,
+                PackageSaveMode.Defaultv3,
+                new SimpleTestPackageContext("a", "1.0.0")
+                {
+                    RuntimeJson = @"{
+                  ""runtimes"": {
+                    ""win"": {
+                            ""a"": {
+                                ""runtime.a"": ""1.0.0"",
+                            }
+                          }
+                        }
+                  }"
+                },
+                new SimpleTestPackageContext("runtime.a", "1.0.0")
+                {
+                    Dependencies = [new SimpleTestPackageContext("runtime.a.core", "1.0.0"), new SimpleTestPackageContext("runtime.a.extensions", "1.0.0")]
+                }
+                );
+            var rootProject = @"
+        {
+          ""runtimes"": {
+                        ""win"": {}
+                  },
+          ""frameworks"": {
+            ""net472"": {
+                ""dependencies"": {
+                        ""a"": {
+                            ""version"": ""[1.0.0,)"",
+                            ""target"": ""Package"",
+                        },
+                },
+                ""packagesToPrune"": {
+                    ""runtime.a.core"" : ""(,1.0.0]"" 
+                }
+            }
+          }
+        }";
+
+            // Setup project
+            var projectSpec = ProjectTestHelpers.GetPackageSpecWithProjectNameAndSpec("Project1", pathContext.SolutionRoot, rootProject);
+
+            // Act & Assert
+            (var result, _) = await ValidateRestoreAlgorithmEquivalency(pathContext, projectSpec);
+            result.Success.Should().BeTrue(because: string.Join(Environment.NewLine, result.LogMessages.Select(e => e.Message)));
+            result.LockFile.Targets.Should().HaveCount(2);
+            result.LockFile.Targets[0].Libraries.Should().HaveCount(1);
+            result.LockFile.Targets[1].Libraries.Should().HaveCount(3);
+
+            result.LockFile.Targets[0].Libraries[0].Name.Should().Be("a");
+            result.LockFile.Targets[0].Libraries[0].Version.Should().Be(new NuGetVersion("1.0.0"));
+            result.LockFile.Targets[0].Libraries[0].Dependencies.Should().BeEmpty();
+            result.LockFile.Targets[1].Libraries[0].Name.Should().Be("a");
+            result.LockFile.Targets[1].Libraries[0].Version.Should().Be(new NuGetVersion("1.0.0"));
+            result.LockFile.Targets[1].Libraries[0].Dependencies.Should().HaveCount(1);
+            result.LockFile.Targets[1].Libraries[1].Name.Should().Be("runtime.a");
+            result.LockFile.Targets[1].Libraries[1].Version.Should().Be(new NuGetVersion("1.0.0"));
+            result.LockFile.Targets[1].Libraries[1].Dependencies.Should().HaveCount(1);
+            result.LockFile.Targets[1].Libraries[2].Name.Should().Be("runtime.a.extensions");
+            result.LockFile.Targets[1].Libraries[2].Version.Should().Be(new NuGetVersion("1.0.0"));
+            result.LockFile.Targets[1].Libraries[2].Dependencies.Should().BeEmpty();
+
+            ISet<LibraryIdentity> installedPackages = result.GetAllInstalled();
+            installedPackages.Should().HaveCount(3);
         }
 
         // Here's why package driven dependencies should flow.

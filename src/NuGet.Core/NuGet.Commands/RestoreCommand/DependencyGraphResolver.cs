@@ -643,7 +643,7 @@ namespace NuGet.Commands
 
                     for (int i = 0; i < refItemResult.Item.Data.Dependencies.Count; i++)
                     {
-                        LibraryDependency dep = refItemResult.Item.Data.Dependencies[i]; // TODO NK - Ensure no projects are pruned.
+                        LibraryDependency dep = refItemResult.Item.Data.Dependencies[i];
                         bool isPackage = dep.LibraryRange.TypeConstraintAllows(LibraryDependencyTarget.Package);
                         bool isDirectPackageReferenceFromRootProject = (currentRefRangeIndex == rootProjectRefItem.LibraryRangeIndex) && isPackage;
 
@@ -789,7 +789,7 @@ namespace NuGet.Commands
                             {
                                 if (projectTargetFramework!.PackagesToPrune.TryGetValue(dep.Name, out PrunePackageReference? prunableVersion))
                                 {
-                                    if (dep.LibraryRange!.VersionRange!.Satisfies(prunableVersion.VersionRange!.MaxVersion!))
+                                    if (dep.LibraryRange!.VersionRange!.Satisfies(prunableVersion.VersionRange!.MaxVersion!)) // TODO NK - can a project id end up here?
                                     {
                                         _logger.LogDebug(string.Format(CultureInfo.CurrentCulture, Strings.RestoreDebugPruningPackageReference, $"{dep.Name} {dep.LibraryRange.VersionRange.OriginalString}", refItemResult.Item.Key, prunableVersion.VersionRange.MaxVersion));
                                         continue;

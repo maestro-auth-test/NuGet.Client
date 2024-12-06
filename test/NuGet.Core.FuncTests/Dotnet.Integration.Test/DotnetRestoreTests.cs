@@ -2829,7 +2829,7 @@ EndGlobal";
 
                 ProjectFileUtils.AddItem(
                     xml,
-                    "PrunedPackageReference",
+                    "PrunePackageReference",
                     "Y",
                     string.Empty,
                     [],
