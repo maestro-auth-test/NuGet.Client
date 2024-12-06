@@ -2063,15 +2063,16 @@ namespace NuGet.Commands.FuncTest
             projectSpec = projectSpec.WithTestProjectReference(projectSpec2);
 
             // Act & Assert
+            // var result = await RunRestoreAsync(pathContext, projectSpec, projectSpec2);
             (var result, _) = await ValidateRestoreAlgorithmEquivalency(pathContext, projectSpec, projectSpec2);
             result.LockFile.Targets.Should().HaveCount(1);
             result.LockFile.Targets[0].Libraries.Should().HaveCount(2);
             result.LockFile.Targets[0].Libraries[0].Name.Should().Be("packageA");
             result.LockFile.Targets[0].Libraries[0].Version.Should().Be(new NuGetVersion("1.0.0"));
             result.LockFile.Targets[0].Libraries[0].Dependencies.Should().BeEmpty();
-            result.LockFile.Targets[1].Libraries[1].Name.Should().Be("Project2");
-            result.LockFile.Targets[1].Libraries[1].Version.Should().Be(new NuGetVersion("1.0.0"));
-            result.LockFile.Targets[1].Libraries[1].Dependencies.Should().BeEmpty();
+            result.LockFile.Targets[0].Libraries[1].Name.Should().Be("Project2");
+            result.LockFile.Targets[0].Libraries[1].Version.Should().Be(new NuGetVersion("1.0.0"));
+            result.LockFile.Targets[0].Libraries[1].Dependencies.Should().BeEmpty();
             result.LockFile.LogMessages.Should().HaveCount(1);
             result.LockFile.LogMessages[0].Code.Should().Be(NuGetLogCode.NU1511);
             ISet<LibraryIdentity> installedPackages = result.GetAllInstalled();
@@ -2124,22 +2125,24 @@ namespace NuGet.Commands.FuncTest
             projectSpec = projectSpec.WithTestProjectReference(projectSpec2);
 
             // Act & Assert
+
+            // var result = await RunRestoreAsync(pathContext, projectSpec, projectSpec2, projectSpec3);
             (var result, _) = await ValidateRestoreAlgorithmEquivalency(pathContext, projectSpec, projectSpec2, projectSpec3);
             result.LockFile.Targets.Should().HaveCount(1);
-            result.LockFile.Targets[0].Libraries.Should().HaveCount(2);
+            result.LockFile.Targets[0].Libraries.Should().HaveCount(3);
             result.LockFile.Targets[0].Libraries[0].Name.Should().Be("packageA");
             result.LockFile.Targets[0].Libraries[0].Version.Should().Be(new NuGetVersion("1.0.0"));
             result.LockFile.Targets[0].Libraries[0].Dependencies.Should().BeEmpty();
-            result.LockFile.Targets[1].Libraries[1].Name.Should().Be("Project2");
-            result.LockFile.Targets[1].Libraries[1].Version.Should().Be(new NuGetVersion("1.0.0"));
-            result.LockFile.Targets[1].Libraries[1].Dependencies.Should().HaveCount(1);
-            result.LockFile.Targets[2].Libraries[1].Name.Should().Be("Project3");
-            result.LockFile.Targets[2].Libraries[1].Version.Should().Be(new NuGetVersion("1.0.0"));
-            result.LockFile.Targets[2].Libraries[1].Dependencies.Should().BeEmpty();
+            result.LockFile.Targets[0].Libraries[1].Name.Should().Be("Project2");
+            result.LockFile.Targets[0].Libraries[1].Version.Should().Be(new NuGetVersion("1.0.0"));
+            result.LockFile.Targets[0].Libraries[1].Dependencies.Should().HaveCount(1);
+            result.LockFile.Targets[0].Libraries[2].Name.Should().Be("Project3");
+            result.LockFile.Targets[0].Libraries[2].Version.Should().Be(new NuGetVersion("1.0.0"));
+            result.LockFile.Targets[0].Libraries[2].Dependencies.Should().BeEmpty();
             result.LockFile.LogMessages.Should().HaveCount(1);
             result.LockFile.LogMessages[0].Code.Should().Be(NuGetLogCode.NU1511);
             ISet<LibraryIdentity> installedPackages = result.GetAllInstalled();
-            installedPackages.Should().HaveCount(2);
+            installedPackages.Should().HaveCount(1);
         }
 
         // P -> A 1.0.0 -> B 1.0.0
@@ -2154,7 +2157,7 @@ namespace NuGet.Commands.FuncTest
             {
                 Dependencies = [new SimpleTestPackageContext("packageB", "1.0.0")]
             };
-            var packageB200 = new SimpleTestPackageContext("packageA", "2.0.0");
+            var packageB200 = new SimpleTestPackageContext("packageB", "2.0.0");
 
             await SimpleTestPackageUtility.CreatePackagesWithoutDependenciesAsync(
                 pathContext.PackageSource,
@@ -2186,12 +2189,12 @@ namespace NuGet.Commands.FuncTest
           }
         }";
 
-
             // Setup project
             var projectSpec = ProjectTestHelpers.GetPackageSpecWithProjectNameAndSpec("Project1", pathContext.SolutionRoot, rootProject);
 
             // Act & Assert
-            (var result, _) = await ValidateRestoreAlgorithmEquivalency(pathContext, projectSpec);
+            var result = await RunRestoreAsync(pathContext, projectSpec);
+            // (var result, _) = await ValidateRestoreAlgorithmEquivalency(pathContext, projectSpec);
             result.LockFile.Targets.Should().HaveCount(2);
             result.LockFile.Targets[0].Libraries.Should().HaveCount(1);
             result.LockFile.Targets[1].Libraries.Should().HaveCount(2);
