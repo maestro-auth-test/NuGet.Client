@@ -204,6 +204,7 @@ namespace NuGet.Commands.Test
                        new List<PackageSource> { new PackageSource(pathContext.PackageSource) };
 
             var externalClosure = DependencyGraphSpecRequestProvider.GetExternalClosure(dgSpec, projectToRestore.RestoreMetadata.ProjectUniqueName).ToList();
+            // TODO NK - Ensure the closure matches the total number of ProjectReferences.
 
             return new TestRestoreRequest(projectToRestore, sources, pathContext.UserPackagesFolder, logger)
             {

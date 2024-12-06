@@ -144,9 +144,11 @@ namespace NuGet.DependencyResolver
 
                         if (prunablePackages.TryGetValue(dependency.Name, out PrunePackageReference prunableVersion))
                         {
-                            if (dependency.LibraryRange.VersionRange.Satisfies(prunableVersion.VersionRange.MaxVersion))
+                            bool isPackage = dependency.LibraryRange.TypeConstraintAllows(LibraryDependencyTarget.Package);
+                            bool isDirectPackageReferenceFromRootProject = node == rootNode;
+                            if (isPackage && !isDirectPackageReferenceFromRootProject)
                             {
-                                _context.Logger.LogDebug(string.Format(CultureInfo.CurrentCulture, Strings.RestoreDebugPruningPackageReference, $"{dependency.Name} {dependency.LibraryRange.VersionRange.OriginalString}", prunableVersion.VersionRange.MaxVersion));
+                                _context.Logger.LogDebug(string.Format(CultureInfo.CurrentCulture, Strings.RestoreDebugPruningPackageReference, $"{dependency.Name} {dependency.LibraryRange.VersionRange.OriginalString}", "TODO NK - refItemResult.Item.Key", prunableVersion.VersionRange.MaxVersion));
                                 continue;
                             }
                         }

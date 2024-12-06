@@ -2058,12 +2058,12 @@ namespace NuGet.Commands.FuncTest
 
             // Setup project
             var projectSpec = ProjectTestHelpers.GetPackageSpecWithProjectNameAndSpec("Project1", pathContext.SolutionRoot, rootProject);
-            var projectSpec2 = ProjectTestHelpers.GetPackageSpec("Project2", framework: "net472"); // TODO NK - The package spec name seems like it might be wrong. It incldues the csproj. Does the dependency graph resolver use csproj path as a Name?
+            var projectSpec2 = ProjectTestHelpers.GetPackageSpec("Project2", framework: "net472");
 
             projectSpec = projectSpec.WithTestProjectReference(projectSpec2);
 
             // Act & Assert
-            (var result, _) = await ValidateRestoreAlgorithmEquivalency(pathContext, projectSpec);
+            (var result, _) = await ValidateRestoreAlgorithmEquivalency(pathContext, projectSpec, projectSpec2);
             result.LockFile.Targets.Should().HaveCount(1);
             result.LockFile.Targets[0].Libraries.Should().HaveCount(2);
             result.LockFile.Targets[0].Libraries[0].Name.Should().Be("packageA");
@@ -2124,7 +2124,7 @@ namespace NuGet.Commands.FuncTest
             projectSpec = projectSpec.WithTestProjectReference(projectSpec2);
 
             // Act & Assert
-            (var result, _) = await ValidateRestoreAlgorithmEquivalency(pathContext, projectSpec);
+            (var result, _) = await ValidateRestoreAlgorithmEquivalency(pathContext, projectSpec, projectSpec2, projectSpec3);
             result.LockFile.Targets.Should().HaveCount(1);
             result.LockFile.Targets[0].Libraries.Should().HaveCount(2);
             result.LockFile.Targets[0].Libraries[0].Name.Should().Be("packageA");
