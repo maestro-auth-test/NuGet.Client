@@ -73,7 +73,7 @@
   <Target
     Name="PublishAndMergePackNupkg"
     AfterTargets="AfterBuild"
-    Condition="'$(TargetFramework)' != '' AND '$(IsXPlat)' != 'true' AND '$(DotNetBuildSourceOnly)' != 'true' AND '$(BuildingInsideVisualStudio)' != 'true'">
+    Condition="'$(TargetFramework)' != '' AND '$(IsXPlat)' != 'true' AND 'true' != 'true' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Publish;ILMergeNuGetPack" />
   </Target>
 
@@ -223,7 +223,7 @@
       <!-- Build from source can't use ILMerge and XPLat builds don't run the ILmerge targets. -->
       <ILMergeSubpath Condition="'$(DotNetBuildSourceOnly)' != 'true' and '$(IsXPlat)' != 'true'">ilmerge\</ILMergeSubpath>
       <PackagePathDir Condition="'$(TargetFramework)' == '$(NETFXTargetFramework)'">Desktop/</PackagePathDir>
-      <PackagePathDir Condition="'$(TargetFramework)' == '$(NETCoreTargetFramework)'">CoreCLR/</PackagePathDir>
+      <PackagePathDir Condition="'$(TargetFramework)' == '$(NetStandardVersion)'">CoreCLR/</PackagePathDir>
     </PropertyGroup>
     <ItemGroup>
       <TfmSpecificPackageFile Include="$(OutputPath)\$(ILMergeSubpath)NuGet.Build.Tasks.Pack.dll" Condition="'$(DotNetBuildSourceOnly)' != 'true'">
