@@ -15,7 +15,7 @@ namespace NuGetVSExtension
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     public sealed class ProvideExpressLoadKeyAttribute : RegistrationAttribute
     {
-        private string _minimumEdition;
+        private string _minimumEdition; // ignore this
         private readonly string _productVersion;
         private readonly string _productName;
         private readonly string _companyName;
