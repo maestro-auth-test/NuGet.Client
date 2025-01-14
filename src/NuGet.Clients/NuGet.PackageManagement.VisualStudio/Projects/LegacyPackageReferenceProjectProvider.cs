@@ -83,10 +83,11 @@ namespace NuGet.PackageManagement.VisualStudio
             IVsProjectAdapter vsProjectAdapter, bool forceCreate)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
+
             var vsProject4 = vsProjectAdapter.Project.Object as VSProject4;
 
             // A legacy CSProj must cast to VSProject4 to manipulate package references
-            if (vsProject4 == null)
+            if (vsProject4 == null && vsProjectAdapter.Project.Object as Microsoft.VisualStudio.VCProjectEngine.VCProject == null)
             {
                 return null;
             }
@@ -97,6 +98,18 @@ namespace NuGet.PackageManagement.VisualStudio
             var restoreProjectStyle = vsProjectAdapter.BuildProperties.GetPropertyValueWithDteFallback(
                 ProjectBuildProperties.RestoreProjectStyle);
 #pragma warning restore CS0618 // Type or member is obsolete
+
+            // VC Project
+            if (vsProject4 == null)
+            {
+                //VC Project
+                if (forceCreate
+                || PackageReference.Equals(restoreProjectStyle, StringComparison.OrdinalIgnoreCase)
+                || HasPackageReference(vsProjectAdapter, _threadingService))
+                {
+                    return new VCProjectSystemServices(vsProjectAdapter, _threadingService, vsProjectAdapter.Project.Object as Microsoft.VisualStudio.VCProjectEngine.VCProject, _scriptExecutor);
+                }
+            }
 
             // For legacy csproj, either the RestoreProjectStyle must be set to PackageReference or
             // project has atleast one package dependency defined as PackageReference
@@ -109,6 +122,30 @@ namespace NuGet.PackageManagement.VisualStudio
             }
 
             return null;
+        }
+
+        public static bool HasPackageReference(IVsProjectAdapter _vsProjectAdapter, IVsProjectThreadingService threadingService)
+        {
+            Assumes.Present(_vsProjectAdapter);
+
+            return threadingService.JoinableTaskFactory.Run(async delegate
+            {
+                await threadingService.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                bool bHasPackageReference = false;
+
+                await ProjectHelper.DoWorkInReadLockAsync(
+                    _vsProjectAdapter.Project,
+                    _vsProjectAdapter.VsHierarchy,
+                    buildProject =>
+                    {
+                        //We should only care about the existence of a PackageReference, and not whether the Condition evaluates to false.
+                        var packageReferences = buildProject.Get​Items​Ignoring​Condition("PackageReference");
+                        bHasPackageReference = packageReferences != null && packageReferences.Count != 0;
+                    });
+
+                return bHasPackageReference;
+            });
         }
     }
 }

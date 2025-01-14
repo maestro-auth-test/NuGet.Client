@@ -43,7 +43,8 @@ namespace NuGet.PackageManagement.VisualStudio
                 return _threadingService.JoinableTaskFactory.Run(async () =>
                 {
                     await _threadingService.JoinableTaskFactory.SwitchToMainThreadAsync();
-                    return _vsProjectAdapter.Project.Object is VSLangProj150.VSProject4;
+                    return _vsProjectAdapter.Project.Object is VSLangProj150.VSProject4
+                    || _vsProjectAdapter.Project.Object is Microsoft.VisualStudio.VCProjectEngine.VCProject;
                 });
             }
         }

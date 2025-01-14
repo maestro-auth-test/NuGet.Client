@@ -103,7 +103,7 @@ namespace NuGet.PackageManagement.VisualStudio
             return results;
         }
 
-        public Task<IEnumerable<LibraryDependency>> GetPackageReferencesAsync(
+        public virtual Task<IEnumerable<LibraryDependency>> GetPackageReferencesAsync(
             NuGetFramework targetFramework, CancellationToken _)
         {
             throw new NotSupportedException();
