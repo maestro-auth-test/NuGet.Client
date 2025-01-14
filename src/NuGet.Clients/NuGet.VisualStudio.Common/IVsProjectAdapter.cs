@@ -71,7 +71,7 @@ namespace NuGet.VisualStudio
         /// <param name="itemName">The item name.</param>
         /// <param name="metadataNames">The metadata names to read.</param>
         /// <returns>An <see cref="IEnumerable{T}"/> containing the itemId and the metadata values.</returns>
-        IEnumerable<(string ItemId, string[] ItemMetadata)> GetBuildItemInformation(string itemName, params string[] metadataNames);
+        List<(string ItemId, string[] ItemMetadata)> GetBuildItemInformation(string itemName, params string[] metadataNames);
 
         /// <summary>
         /// See <see cref="Microsoft.VisualStudio.Shell.PackageUtilities.IsCapabilityMatch(IVsHierarchy, string)"/>

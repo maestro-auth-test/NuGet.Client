@@ -194,7 +194,7 @@ namespace NuGet.PackageManagement.VisualStudio
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            IEnumerable<(string ItemId, string[] ItemMetadata)> buildItems = _vsProjectAdapter.GetBuildItemInformation(ProjectItems.NuGetAuditSuppress);
+            List<(string ItemId, string[] ItemMetadata)> buildItems = _vsProjectAdapter.GetBuildItemInformation(ProjectItems.NuGetAuditSuppress);
             if (buildItems is null)
             {
                 return null;

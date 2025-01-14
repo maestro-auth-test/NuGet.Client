@@ -212,7 +212,7 @@ namespace NuGet.PackageManagement.VisualStudio
             return NuGetFramework.UnsupportedFramework;
         }
 
-        public IEnumerable<(string ItemId, string[] ItemMetadata)> GetBuildItemInformation(string itemName, params string[] metadataNames)
+        public List<(string ItemId, string[] ItemMetadata)> GetBuildItemInformation(string itemName, params string[] metadataNames)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
@@ -234,7 +234,7 @@ namespace NuGet.PackageManagement.VisualStudio
                 return callback.Items;
             }
 
-            return Enumerable.Empty<(string ItemId, string[] ItemMetadata)>();
+            return [];
         }
 
         private string GetTargetFrameworkString()

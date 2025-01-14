@@ -352,22 +352,7 @@ namespace NuGet.PackageManagement.VisualStudio
         internal static IReadOnlyList<(string id, string[] metadata)> GetItems(IVsProjectAdapter projectAdapter, string itemTypeName, params string[] metadataNames)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
-
-            IEnumerable<(string ItemId, string[] ItemMetadata)> items = projectAdapter.GetBuildItemInformation(itemTypeName, metadataNames);
-            var enumerator = items.GetEnumerator();
-            if (!enumerator.MoveNext())
-            {
-                return Array.Empty<(string, string[])>();
-            }
-
-            List<(string, string[])> result = items is ICollection<(string, string[])> itemCollection ? new(itemCollection.Count) : new();
-
-            do
-            {
-                result.Add(enumerator.Current);
-            } while (enumerator.MoveNext());
-
-            return result;
+            return projectAdapter.GetBuildItemInformation(itemTypeName, metadataNames);
         }
 
         private class ProjectReference
