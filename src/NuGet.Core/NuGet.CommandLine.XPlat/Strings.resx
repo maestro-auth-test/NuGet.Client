@@ -981,4 +981,8 @@ Non-HTTPS access will be removed in a future version. Consider migrating to 'HTT
   <data name="ListPkg_AuditSourcesUsedDescription" xml:space="preserve">
     <value>The following vulnerability audit sources were used:</value>
   </data>
+  <data name="Warning_AuditSourceWithoutData" xml:space="preserve">
+    <value>Audit source '{0}' did not provide any vulnerability data.</value>
+    <comment>{0} is the source name</comment>
+  </data>
 </root>
