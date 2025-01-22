@@ -115,9 +115,10 @@ namespace NuGet.Tests.Apex.Daily
 
                 using (var testContext = new ApexTestContext(VisualStudio, projectTemplate, Logger, simpleTestPathContext: simpleTestPathContext))
                 {
-                    //VisualStudio.AssertNoErrors();
+                    VisualStudio.AssertNoErrors();
                     var solutionService = VisualStudio.Get<SolutionService>();
-                    Thread.Sleep(60000);
+
+                    //Thread.Sleep(60000);
                     testContext.NuGetApexTestService.WaitForAutoRestore();
                     testContext.SolutionService.Build();
 
@@ -126,7 +127,7 @@ namespace NuGet.Tests.Apex.Daily
 
                     nugetConsole.InstallPackageFromPMC(packageName, v100);
                     //testContext.SolutionService.Build();
-                    Thread.Sleep(60000);
+                    //Thread.Sleep(60000);
                     testContext.NuGetApexTestService.WaitForAutoRestore();
 
                     // Assert
@@ -157,20 +158,20 @@ namespace NuGet.Tests.Apex.Daily
                 {
                     VisualStudio.AssertNoErrors();
                     var solutionService = VisualStudio.Get<SolutionService>();
-                    //testContext.SolutionService.Build();
+                    testContext.SolutionService.Build();
                     Thread.Sleep(60000);
-                    testContext.NuGetApexTestService.WaitForAutoRestore();
+                    //testContext.NuGetApexTestService.WaitForAutoRestore();
 
                     // Act
                     var nugetConsole = GetConsole(testContext.Project);
 
                     nugetConsole.InstallPackageFromPMC(packageName, v100);
-                    //testContext.SolutionService.Build();
+                    testContext.SolutionService.Build();
                     //Thread.Sleep(60000);
                     testContext.NuGetApexTestService.WaitForAutoRestore();
 
                     nugetConsole.UpdatePackageFromPMC(packageName, v200);
-                    //testContext.SolutionService.Build();
+                    testContext.SolutionService.Build();
                     testContext.NuGetApexTestService.WaitForAutoRestore();
 
                     // Assert

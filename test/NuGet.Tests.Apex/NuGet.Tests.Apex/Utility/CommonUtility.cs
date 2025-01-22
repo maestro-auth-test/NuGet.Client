@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
@@ -501,19 +502,50 @@ namespace NuGet.Tests.Apex
             }
         }
 
-        internal static ProjectTestExtension CreateAndInitProject(ProjectTemplate projectTemplate, SimpleTestPathContext pathContext, SolutionService solutionService, ITestLogger logger)
+        internal static ProjectTestExtension CreateAndInitProject(ProjectTemplate projectTemplate, SimpleTestPathContext pathContext, SolutionService solutionService, ITestLogger logger, VisualStudioHost visualStudio)
         {
+            var testService = visualStudio.Get<NuGetApexTestService>();
+
             logger.WriteMessage("Creating solution");
             solutionService.CreateEmptySolution("TestSolution", pathContext.SolutionRoot);
 
             logger.WriteMessage("Adding project");
             var project = solutionService.AddProject(ProjectLanguage.CSharp, projectTemplate, ProjectTargetFramework.V46, "TestProject");
 
-            //logger.WriteMessage("Saving solution");
-            //solutionService.Save();
+            logger.WriteMessage("Saving solution");
+            solutionService.Save();
 
-            //logger.WriteMessage("Building solution");
-            //Thread.Sleep(60000);
+            logger.WriteMessage("Building solution");
+            Thread.Sleep(60000);
+            testService.WaitForAutoRestore();
+            project.Build();
+
+            return project;
+        }
+
+
+        internal static ProjectTestExtension CreateAndInitProject(ProjectTemplate projectTemplate, SimpleTestPathContext pathContext, SolutionService solutionService, ITestLogger logger)
+        {
+
+            var frameworkName = new FrameworkName(".NETCore", new System.Version("9.0"));// new FrameworkName(".NETCore, Version=9.0");
+
+            logger.WriteMessage("Creating solution");
+            solutionService.CreateEmptySolution("TestSolution", pathContext.SolutionRoot);
+
+            logger.WriteMessage("Adding project");
+            var templateParameters = new Dictionary<string, string>();
+            templateParameters.Add("platformversion", "net9.0");
+
+            //ProjectLanguage projectLanguage = codeLanguage == CodeLanguage.UnspecifiedLanguage ? this.ProjectLanguage : codeLanguage.AsProjectLanguage();
+            //ProjectTestExtension project = 
+            var project = solutionService.AddProject<ProjectTestExtension>(ProjectLanguage.CSharp, projectTemplate, templateParameters, frameworkName, "TestProject");
+            //host.ObjectModel.Solution.CreateProject<ProjectTestExtension>(projectLanguage, projectTemplate, templateParameters, frameworkName, projectName);
+            //var project = solutionService.AddProject(ProjectLanguage.CSharp, projectTemplate, frameworkName, "TestProject");
+
+            logger.WriteMessage("Saving solution");
+            solutionService.Save();
+
+            logger.WriteMessage("Building solution");
             //project.Build();
 
             return project;
