@@ -91,7 +91,7 @@ namespace NuGet.Tools.Commands
                 }
                 finally
                 {
-                    OutputConsoleLogger.End();
+                    OutputConsoleLogger.End(bringErrorListToFrontIfSettingsPermit: false);
                 }
             }).PostOnFailure(nameof(NuGetPackage), nameof(ExecuteClearNuGetLocalResourcesCommand));
         }
@@ -111,7 +111,7 @@ namespace NuGet.Tools.Commands
             }
             finally
             {
-                OutputConsoleLogger.End();
+                OutputConsoleLogger.End(bringErrorListToFrontIfSettingsPermit: false);
             }
         }
 

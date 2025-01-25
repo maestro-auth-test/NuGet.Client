@@ -31,5 +31,8 @@ namespace NuGet.PackageManagement.VisualStudio
 
         /// <summary> End the logging. </summary>
         void End();
+
+        /// <summary> End the logging without possibly showing the Error List. </summary>
+        void End(bool bringErrorListToFrontIfSettingsPermit);
     }
 }

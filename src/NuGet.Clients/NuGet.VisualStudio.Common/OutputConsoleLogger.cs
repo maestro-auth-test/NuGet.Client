@@ -99,13 +99,21 @@ namespace NuGet.VisualStudio.Common
 
         public void End()
         {
+            End(bringErrorListToFrontIfSettingsPermit: true);
+        }
+
+        public void End(bool bringErrorListToFrontIfSettingsPermit)
+        {
             Run(async () =>
             {
                 await _outputConsole.WriteLineAsync(Resources.Finished);
                 await _outputConsole.WriteLineAsync(string.Empty);
 
-                // Give the error list focus
-                await _errorList.Value.BringToFrontIfSettingsPermitAsync();
+                if (bringErrorListToFrontIfSettingsPermit)
+                {
+                    // Give the error list focus
+                    await _errorList.Value.BringToFrontIfSettingsPermitAsync();
+                }
             });
         }
 
