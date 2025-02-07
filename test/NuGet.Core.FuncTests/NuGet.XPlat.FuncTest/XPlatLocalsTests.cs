@@ -63,10 +63,26 @@ namespace NuGet.XPlat.FuncTest
                 DotnetCliUtil.CreateTestFiles(mockTmpCacheDirectory.FullName);
                 DotnetCliUtil.CreateTestFiles(mockPluginsCacheDirectory.FullName);
 
+                string workingDirectory;
+                try
+                    {
+                    workingDirectory = Directory.GetCurrentDirectory();
+                    }
+                catch (Exception ex)
+                    {
+                    throw new InvalidOperationException(
+                        "Failed to retrieve the current working directory (getcwd failed).", ex);
+                    }
+                
+                if (!Directory.Exists(workingDirectory))
+                     {
+                     throw new DirectoryNotFoundException($"The working directory '{workingDirectory}' does not exist.");
+                     }
+
                 // Act
                 var result = CommandRunner.Run(
                     DotnetCli,
-                    Directory.GetCurrentDirectory(),
+                    workingDirectory,
                     $"{XplatDll} {args}",
                     environmentVariables: new Dictionary<string, string>
                     {
