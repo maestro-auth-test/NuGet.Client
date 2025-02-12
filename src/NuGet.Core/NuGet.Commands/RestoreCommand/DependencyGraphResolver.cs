@@ -1002,8 +1002,12 @@ namespace NuGet.Commands
                     VersionRange currentVersionRange = currentDependencyGraphItem.LibraryDependency.LibraryRange.VersionRange ?? VersionRange.All;
                     VersionRange chosenVersionRange = chosenResolvedItem.LibraryDependency.LibraryRange.VersionRange ?? VersionRange.All;
 
+                    bool isGreaterThanOrEqualTo = currentVersionRange.IsFloating
+                        ? chosenResolvedItem.Item.Key.Version >= currentGraphItem.Key.Version
+                        : RemoteDependencyWalker.IsGreaterThanOrEqualTo(chosenVersionRange, currentVersionRange);
+
                     // The chosen item should be evicted or the current item has a greater version, determine if the current item should be chosen instead
-                    if (evictOnTypeConstraint || !RemoteDependencyWalker.IsGreaterThanOrEqualTo(chosenVersionRange, currentVersionRange))
+                    if (evictOnTypeConstraint || !isGreaterThanOrEqualTo)
                     {
                         if (chosenResolvedItem.LibraryDependency.LibraryRange.TypeConstraintAllows(LibraryDependencyTarget.Package) && currentDependencyGraphItem.LibraryDependency.LibraryRange.TypeConstraintAllows(LibraryDependencyTarget.Package))
                         {
