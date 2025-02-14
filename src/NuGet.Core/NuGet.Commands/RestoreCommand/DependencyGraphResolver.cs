@@ -163,8 +163,6 @@ namespace NuGet.Commands
                     IsDirectPackageReferenceFromRootProject = false,
                 };
 
-                LibraryRangeIndex[] rootedDependencyPath = new[] { rootProjectRefItem.LibraryRangeIndex };
-
                 _ = findLibraryEntryCache.GetOrAddAsync(
                     rootProjectRefItem.LibraryRangeIndex,
                     async static (state) =>
@@ -313,46 +311,74 @@ namespace NuGet.Commands
                         {
                             if (chosenRef.LibraryRange.TypeConstraintAllows(LibraryDependencyTarget.Package) && currentRef.LibraryRange.TypeConstraintAllows(LibraryDependencyTarget.Package))
                             {
-                                if (chosenResolvedItem.Parents != null)
+                                bool isParentCentrallyPinned = false;
+
+                                if (isCentralPackageTransitivePinningEnabled && importRefItem.Path.Length > 1)
                                 {
-                                    bool atLeastOneCommonAncestor = false;
-
-                                    foreach (LibraryRangeIndex parentRangeIndex in chosenResolvedItem.Parents.NoAllocEnumerate())
+                                    for (int pathIndex = importRefItem.Path.Length - 1; pathIndex > 0; pathIndex--)
                                     {
-                                        if (importRefItem.Path.Length > 2 && importRefItem.Path[importRefItem.Path.Length - 2] == parentRangeIndex)
+                                        LibraryRangeIndex parentLibraryRangeIndex = importRefItem.Path[pathIndex];
+
+                                        if (findLibraryEntryCache.TryGetValue(parentLibraryRangeIndex, out Task<FindLibraryEntryResult>? parentCacheEntryTask))
                                         {
-                                            atLeastOneCommonAncestor = true;
-                                            break;
-                                        }
-                                    }
+                                            FindLibraryEntryResult result = await parentCacheEntryTask;
 
-                                    if (atLeastOneCommonAncestor)
-                                    {
-                                        continue;
+                                            if (chosenResolvedItems.TryGetValue(result.DependencyIndex, out var parentChosenResolvedItem))
+                                            {
+                                                isParentCentrallyPinned = parentChosenResolvedItem.IsCentrallyPinnedTransitivePackage;
+
+                                                if (isParentCentrallyPinned)
+                                                {
+                                                    break;
+                                                }
+                                            }
+                                        }
                                     }
                                 }
 
-                                if (HasCommonAncestor(chosenResolvedItem.Path, importRefItem.Path))
+                                if (!isParentCentrallyPinned)
                                 {
-                                    continue;
-                                }
-
-                                if (chosenResolvedItem.ParentPathsThatHaveBeenEclipsed != null)
-                                {
-                                    bool hasAlreadyBeenEclipsed = false;
-
-                                    foreach (LibraryRangeIndex parentRangeIndex in chosenResolvedItem.ParentPathsThatHaveBeenEclipsed)
+                                    if (chosenResolvedItem.Parents != null)
                                     {
-                                        if (importRefItem.Path.Contains(parentRangeIndex))
+                                        bool atLeastOneCommonAncestor = false;
+
+                                        foreach (LibraryRangeIndex parentRangeIndex in chosenResolvedItem.Parents.NoAllocEnumerate())
                                         {
-                                            hasAlreadyBeenEclipsed = true;
-                                            break;
+                                            if (importRefItem.Path.Length > 2 && importRefItem.Path[importRefItem.Path.Length - 2] == parentRangeIndex)
+                                            {
+                                                atLeastOneCommonAncestor = true;
+                                                break;
+                                            }
+                                        }
+
+                                        if (atLeastOneCommonAncestor)
+                                        {
+                                            continue;
                                         }
                                     }
 
-                                    if (hasAlreadyBeenEclipsed)
+                                    if (HasCommonAncestor(chosenResolvedItem.Path, importRefItem.Path))
                                     {
                                         continue;
+                                    }
+
+                                    if (chosenResolvedItem.ParentPathsThatHaveBeenEclipsed != null)
+                                    {
+                                        bool hasAlreadyBeenEclipsed = false;
+
+                                        foreach (LibraryRangeIndex parentRangeIndex in chosenResolvedItem.ParentPathsThatHaveBeenEclipsed)
+                                        {
+                                            if (importRefItem.Path.Contains(parentRangeIndex))
+                                            {
+                                                hasAlreadyBeenEclipsed = true;
+                                                break;
+                                            }
+                                        }
+
+                                        if (hasAlreadyBeenEclipsed)
+                                        {
+                                            continue;
+                                        }
                                     }
                                 }
                             }
@@ -438,7 +464,7 @@ namespace NuGet.Commands
                                 {
                                     LibraryDependency = currentRef,
                                     LibraryRangeIndex = currentRefRangeIndex,
-                                    Parents = isCentrallyPinnedTransitivePackage && !directPackageReferenceFromRootProject ? new HashSet<LibraryRangeIndex>() { importRefItem.Parent } : null,
+                                    Parents = isCentrallyPinnedTransitivePackage ? new HashSet<LibraryRangeIndex>() { pathToCurrentRef[pathToCurrentRef.Length - 1] } : null,
                                     Path = pathToCurrentRef,
                                     IsCentrallyPinnedTransitivePackage = isCentrallyPinnedTransitivePackage,
                                     IsDirectPackageReferenceFromRootProject = directPackageReferenceFromRootProject,
@@ -485,13 +511,10 @@ namespace NuGet.Commands
                                 chosenResolvedItem.Parents = new HashSet<LibraryRangeIndex>();
                             }
 
-                            if (!chosenResolvedItem.IsDirectPackageReferenceFromRootProject)
-                            {
-                                chosenResolvedItem.Parents?.Add(importRefItem.Parent);
-                            }
+                            chosenResolvedItem.Parents?.Add(pathToCurrentRef[pathToCurrentRef.Length - 1]);
 
                             //If the one we already have chosen is pure, then we can skip this one.  Processing it wont bring any new info
-                            if (chosenSuppressions.Count == 1 && chosenSuppressions[0].Count == 0 && HasCommonAncestor(chosenResolvedItem.Path, pathToCurrentRef))
+                            if (chosenSuppressions.Count == 1 && chosenSuppressions[0].Count == 0)
                             {
                                 continue;
                             }
@@ -576,7 +599,7 @@ namespace NuGet.Commands
                             {
                                 LibraryDependency = currentRef,
                                 LibraryRangeIndex = currentRefRangeIndex,
-                                Parents = isCentrallyPinnedTransitivePackage && !directPackageReferenceFromRootProject ? new HashSet<LibraryRangeIndex>() { importRefItem.Parent } : null,
+                                Parents = isCentrallyPinnedTransitivePackage ? new HashSet<LibraryRangeIndex>() { pathToCurrentRef[pathToCurrentRef.Length - 1] } : null,
                                 Path = pathToCurrentRef,
                                 IsCentrallyPinnedTransitivePackage = isCentrallyPinnedTransitivePackage,
                                 IsDirectPackageReferenceFromRootProject = directPackageReferenceFromRootProject,
@@ -648,6 +671,7 @@ namespace NuGet.Commands
                         bool isDirectPackageReferenceFromRootProject = (currentRefRangeIndex == rootProjectRefItem.LibraryRangeIndex) && isPackage;
 
                         bool isCentrallyPinnedTransitiveDependency = isCentralPackageTransitivePinningEnabled
+                            && !isDirectPackageReferenceFromRootProject
                             && isPackage
                             && pinnedPackageVersions?.TryGetValue(depIndex, out pinnedVersionRange) == true;
 
@@ -655,7 +679,7 @@ namespace NuGet.Commands
 
                         LibraryDependency actualLibraryDependency = dep;
 
-                        if (isCentrallyPinnedTransitiveDependency && !isDirectPackageReferenceFromRootProject)
+                        if (isCentrallyPinnedTransitiveDependency)
                         {
                             actualLibraryDependency = new LibraryDependency(dep)
                             {
@@ -676,8 +700,7 @@ namespace NuGet.Commands
                             LibraryDependency = actualLibraryDependency,
                             LibraryDependencyIndex = depIndex,
                             LibraryRangeIndex = rangeIndex,
-                            Path = isCentrallyPinnedTransitiveDependency || isDirectPackageReferenceFromRootProject ? rootedDependencyPath : LibraryRangeInterningTable.CreatePathToRef(pathToCurrentRef, currentRefRangeIndex),
-                            Parent = currentRefRangeIndex,
+                            Path = LibraryRangeInterningTable.CreatePathToRef(pathToCurrentRef, currentRefRangeIndex),
                             Suppressions = suppressions,
                             IsDirectPackageReferenceFromRootProject = isDirectPackageReferenceFromRootProject,
                             IsCentrallyPinnedTransitivePackage = isCentrallyPinnedTransitiveDependency
@@ -758,7 +781,6 @@ namespace NuGet.Commands
                                     LibraryDependencyIndex = libraryDependencyIndex,
                                     LibraryRangeIndex = findLibraryCachedAsyncResult.GetRangeIndexForDependency(runtimeDependencyIndex),
                                     Path = LibraryRangeInterningTable.CreatePathToRef(pathToCurrentRef, currentRefRangeIndex),
-                                    Parent = currentRefRangeIndex,
                                     Suppressions = suppressions,
                                     IsDirectPackageReferenceFromRootProject = false,
                                 };
@@ -943,9 +965,9 @@ namespace NuGet.Commands
                                         {
                                             foreach (var parent in chosenItem.Parents)
                                             {
-                                                if (foundItem.Path.Contains(parent) && !foundItem.IsDirectPackageReferenceFromRootProject)
+                                                if (foundItem.Path.Contains(parent))
                                                 {
-                                                    downgrades.Add(chosenItemRangeIndex, (foundItem.LibraryRangeIndex, dep, parent, chosenItem.LibraryDependency, isCentralPackageTransitivePinningEnabled ? chosenItem.IsCentrallyPinnedTransitivePackage : false));
+                                                    downgrades.Add(chosenItemRangeIndex, (foundItem.LibraryRangeIndex, dep, parent, chosenItem.LibraryDependency, false));
 
                                                     foundParentDowngrade = true;
                                                     break;
@@ -953,9 +975,9 @@ namespace NuGet.Commands
                                             }
                                         }
 
-                                        if (!foundParentDowngrade && (!isCentralPackageTransitivePinningEnabled || !chosenItem.IsDirectPackageReferenceFromRootProject))
+                                        if (!foundParentDowngrade)
                                         {
-                                            downgrades.Add(chosenItemRangeIndex, (foundItem.LibraryRangeIndex, dep, chosenItem.Path[chosenItem.Path.Length - 1], chosenItem.LibraryDependency, isCentralPackageTransitivePinningEnabled ? chosenItem.IsCentrallyPinnedTransitivePackage : false));
+                                            downgrades.Add(chosenItemRangeIndex, (foundItem.LibraryRangeIndex, dep, chosenItem.Path[chosenItem.Path.Length - 1], chosenItem.LibraryDependency, false));
                                         }
                                     }
 
@@ -988,7 +1010,7 @@ namespace NuGet.Commands
                             var newGraphNode = new GraphNode<RemoteResolveResult>(actualDep.LibraryRange);
                             newGraphNode.Item = findLibraryEntryResult.Item;
 
-                            if (chosenItem.IsCentrallyPinnedTransitivePackage && !chosenItem.IsDirectPackageReferenceFromRootProject)
+                            if (chosenItem.IsCentrallyPinnedTransitivePackage)
                             {
                                 newGraphNode.Disposition = Disposition.Accepted;
                                 newGraphNode.Item.IsCentralTransitive = true;
@@ -1001,7 +1023,7 @@ namespace NuGet.Commands
                                 currentGraphNode.InnerNodes.Add(newGraphNode);
                             }
 
-                            if (dep.SuppressParent != LibraryIncludeFlags.All && isCentralPackageTransitivePinningEnabled && !chosenItem.IsDirectPackageReferenceFromRootProject && !downgrades.ContainsKey(chosenItemRangeIndex) && !RemoteDependencyWalker.IsGreaterThanOrEqualTo(chosenItem.LibraryDependency.LibraryRange.VersionRange, dep.LibraryRange.VersionRange))
+                            if (dep.SuppressParent != LibraryIncludeFlags.All && isCentralPackageTransitivePinningEnabled && !downgrades.ContainsKey(chosenItemRangeIndex) && !RemoteDependencyWalker.IsGreaterThanOrEqualTo(chosenItem.LibraryDependency.LibraryRange.VersionRange, dep.LibraryRange.VersionRange))
                             {
                                 downgrades.Add(chosenItem.LibraryRangeIndex, (currentLibraryRangeIndex, dep, rootProjectRefItem.LibraryRangeIndex, chosenItem.LibraryDependency, true));
                             }
@@ -1114,7 +1136,7 @@ namespace NuGet.Commands
                                 {
                                     IsCentralTransitive = downgrade.Value.IsCentralTransitive
                                 },
-                                OuterNode = downgrade.Value.IsCentralTransitive ? rootGraphNode : toNode,
+                                OuterNode = toNode,
                             }
                         });
                     }
@@ -1126,7 +1148,7 @@ namespace NuGet.Commands
                     {
                         ResolvedDependencyGraphItem chosenResolvedItem = item.Value;
 
-                        if (!chosenResolvedItem.IsCentrallyPinnedTransitivePackage || chosenResolvedItem.IsDirectPackageReferenceFromRootProject || chosenResolvedItem.Parents == null || chosenResolvedItem.Parents.Count == 0)
+                        if (!chosenResolvedItem.IsCentrallyPinnedTransitivePackage || chosenResolvedItem.Parents == null || chosenResolvedItem.Parents.Count == 0)
                         {
                             continue;
                         }
@@ -1495,8 +1517,6 @@ namespace NuGet.Commands
             public LibraryRangeIndex LibraryRangeIndex { get; set; } = LibraryRangeIndex.Invalid;
 
             public LibraryRangeIndex[] Path { get; set; } = Array.Empty<LibraryRangeIndex>();
-
-            public LibraryRangeIndex Parent { get; set; }
 
             public HashSet<LibraryDependencyIndex>? Suppressions { get; set; }
         }
