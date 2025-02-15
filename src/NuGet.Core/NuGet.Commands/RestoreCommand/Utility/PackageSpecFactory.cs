@@ -87,10 +87,6 @@ namespace NuGet.Commands.Restore.Utility
             string projectName = GetProjectName(outerBuild);
 
             string? outputPath = GetRestoreOutputPath(project);
-            if (outputPath is null)
-            {
-                return (null, null);
-            }
 
             (ProjectStyle projectStyle, string? packagesConfigFilePath) = GetProjectStyle(project);
 
