@@ -904,9 +904,8 @@ namespace NuGet.PackageManagement.UI
         private async Task UpdatePackageMaxVulnerabilityAsync(PackageIdentity packageIdentity, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-
-            IEnumerable<PackageVulnerabilityMetadataContextInfo> vulnerabilityInfoList =
-                        await _vulnerabilityService.GetVulnerabilityInfoAsync(packageIdentity, cancellationToken);
+            var vulnerabilityInfoResult = await _vulnerabilityService.GetAllVulnerabilityDataAsync(cancellationToken);
+            IEnumerable<PackageVulnerabilityMetadataContextInfo> vulnerabilityInfoList = _vulnerabilityService.GetVulnerabilityInfoAsync(packageIdentity, vulnerabilityInfoResult, cancellationToken);
 
             SetVulnerabilityMaxSeverity(packageIdentity.Version, vulnerabilityInfoList?.FirstOrDefault()?.Severity ?? -1);
         }
