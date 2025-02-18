@@ -661,6 +661,11 @@ namespace NuGet.Commands
 
                         VersionRange? pinnedVersionRange = null;
 
+                        if (!isDirectPackageReferenceFromRootProject && directPackageReferences?.Contains(depIndex) == true)
+                        {
+                            continue;
+                        }
+
                         bool isCentrallyPinnedTransitiveDependency = isCentralPackageTransitivePinningEnabled
                             && isPackage
                             && pinnedPackageVersions?.TryGetValue(depIndex, out pinnedVersionRange) == true;
@@ -683,26 +688,6 @@ namespace NuGet.Commands
                         else
                         {
                             rangeIndex = refItemResult.GetRangeIndexForDependency(i);
-                        }
-
-                        if (!isDirectPackageReferenceFromRootProject && directPackageReferences?.Contains(depIndex) == true)
-                        {
-                            continue;
-                        }
-
-                        // See if a dependency with the same version and no suppressions has already been resolved.  If so, its children have already been added to the queue.
-                        if (chosenResolvedItems.TryGetValue(depIndex, out ResolvedDependencyGraphItem? childResolvedDependencyGraphItem)
-                            && childResolvedDependencyGraphItem.LibraryRangeIndex == rangeIndex
-                            && childResolvedDependencyGraphItem.Suppressions.Count == 1
-                            && childResolvedDependencyGraphItem.Suppressions[0].Count == 0)
-                        {
-                            if (!childResolvedDependencyGraphItem.IsDirectPackageReferenceFromRootProject)
-                            {
-                                // Keep track of the parents of this item
-                                childResolvedDependencyGraphItem.Parents?.Add(importRefItem.LibraryRangeIndex);
-                            }
-
-                            continue;
                         }
 
                         DependencyGraphItem dependencyGraphItem = new()
