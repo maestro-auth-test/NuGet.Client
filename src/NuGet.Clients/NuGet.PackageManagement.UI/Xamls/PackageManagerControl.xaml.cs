@@ -183,7 +183,7 @@ namespace NuGet.PackageManagement.UI
             }
 
             var sourceRepositories = sourceRepositoryProvider.GetRepositories();
-            _packageVulnerabilityService = new PackageVulnerabilityService(sourceRepositories, _uiLogger);
+            _packageVulnerabilityService = new PackageVulnerabilityService(sourceRepositories, _uiLogger, cancellationToken);
 
             var solutionManager = Model.Context.SolutionManagerService;
             solutionManager.ProjectAdded += OnProjectChanged;
@@ -1051,10 +1051,7 @@ namespace NuGet.PackageManagement.UI
             IInstalledAndTransitivePackages installedAndTransitivePackages = await PackageCollection.GetInstalledAndTransitivePackagesAsync(loadContext.ServiceBroker, loadContext.Projects, includeTransitiveOrigins: true, token);
             installedPackageCollection = PackageCollection.FromPackageReferences(installedAndTransitivePackages.InstalledPackages);
             PackageCollection transitivePackageCollection = PackageCollection.FromPackageReferences(installedAndTransitivePackages.TransitivePackages.Where(p => p.TransitiveOrigins.Any()));
-            var vulnerabilityInfoResult = await _packageVulnerabilityService.GetAllVulnerabilityDataAsync(token);
-            var transitivePackageVulnerabilities = transitivePackageCollection
-                .Select(p => _packageVulnerabilityService.GetVulnerabilityInfoAsync(p, vulnerabilityInfoResult, token))
-                .ToArray();
+            IEnumerable<PackageVulnerabilityMetadataContextInfo>[] transitivePackageVulnerabilities = await Task.WhenAll(transitivePackageCollection.Select(p => _packageVulnerabilityService.GetVulnerabilityInfoAsync(p, token)));
 
             foreach (IEnumerable<PackageVulnerabilityMetadataContextInfo> vulnerabilityInfo in transitivePackageVulnerabilities)
             {
