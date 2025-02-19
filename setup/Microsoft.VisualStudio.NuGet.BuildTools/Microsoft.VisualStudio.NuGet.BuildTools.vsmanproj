@@ -24,8 +24,7 @@
   </ItemGroup>
 
   <ItemGroup Condition=" '$(IsVsixBuild)' != 'true' ">
-    <MergeManifest Include="$(VsixPublishDestination)$(MSBuildProjectName).json"
-                   SBOMFileLocation="$(ManifestDirPath)\_manifest\spdx_2.2\manifest.spdx.json" />
+    <MergeManifest Include="$(VsixPublishDestination)$(MSBuildProjectName).json" />
   </ItemGroup>
 
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />
