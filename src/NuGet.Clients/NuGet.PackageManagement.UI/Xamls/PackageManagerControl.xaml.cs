@@ -183,7 +183,7 @@ namespace NuGet.PackageManagement.UI
             }
 
             var sourceRepositories = sourceRepositoryProvider.GetRepositories();
-            _packageVulnerabilityService = new PackageVulnerabilityService(sourceRepositories, _uiLogger, cancellationToken);
+            _packageVulnerabilityService = new PackageVulnerabilityService(sourceRepositories, _uiLogger, _refreshCts.Token);
 
             var solutionManager = Model.Context.SolutionManagerService;
             solutionManager.ProjectAdded += OnProjectChanged;
