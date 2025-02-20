@@ -73,7 +73,7 @@ extends:
         enabled: true
         scanOutputDirectoryOnly: true
       sbom:
-        enabled: true
+        enabled: false
       credscan:
         enabled: false
     pool:
