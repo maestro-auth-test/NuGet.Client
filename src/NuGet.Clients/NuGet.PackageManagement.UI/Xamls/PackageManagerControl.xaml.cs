@@ -1771,6 +1771,8 @@ namespace NuGet.PackageManagement.UI
 
         private async Task ExecuteRestartSearchCommandAsync()
         {
+            // reset vulnerability data
+            _packageVulnerabilityService?.ResetVulnerabilityData();
             await SearchPackagesAndRefreshUpdateCountAsync(useCacheForUpdates: false);
             await RefreshConsolidatablePackagesCountAsync();
         }
