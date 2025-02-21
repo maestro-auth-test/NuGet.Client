@@ -264,6 +264,9 @@ namespace NuGet.PackageManagement.UI
 
             var listItemViewModels = new Dictionary<string, PackageItemViewModel>();
 
+            // refresh vulnerability data before listing packages
+            _packageVulnerabilityService?.RefreshVulnerabilityData();
+
             foreach (PackageSearchMetadataContextInfo metadataContextInfo in _state.Results.PackageSearchItems)
             {
                 var packageId = metadataContextInfo.Identity.Id;
