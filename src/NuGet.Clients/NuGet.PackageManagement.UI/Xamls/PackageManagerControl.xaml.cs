@@ -1051,7 +1051,7 @@ namespace NuGet.PackageManagement.UI
             IInstalledAndTransitivePackages installedAndTransitivePackages = await PackageCollection.GetInstalledAndTransitivePackagesAsync(loadContext.ServiceBroker, loadContext.Projects, includeTransitiveOrigins: true, token);
             installedPackageCollection = PackageCollection.FromPackageReferences(installedAndTransitivePackages.InstalledPackages);
             PackageCollection transitivePackageCollection = PackageCollection.FromPackageReferences(installedAndTransitivePackages.TransitivePackages.Where(p => p.TransitiveOrigins.Any()));
-            IEnumerable<List<PackageVulnerabilityMetadataContextInfo>> transitivePackageVulnerabilities = await _packageVulnerabilityService.GetVulnerabilityInfoAsync(transitivePackageCollection, token);
+            IEnumerable<IEnumerable<PackageVulnerabilityMetadataContextInfo>> transitivePackageVulnerabilities = await _packageVulnerabilityService.GetVulnerabilityInfoAsync(transitivePackageCollection, token);
 
             foreach (IEnumerable<PackageVulnerabilityMetadataContextInfo> vulnerabilityInfo in transitivePackageVulnerabilities)
             {
