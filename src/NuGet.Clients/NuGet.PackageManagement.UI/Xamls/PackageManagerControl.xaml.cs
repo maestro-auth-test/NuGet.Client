@@ -70,6 +70,7 @@ namespace NuGet.PackageManagement.UI
         private IPackageVulnerabilityService _packageVulnerabilityService;
         private INuGetPackageFileService _nugetPackageFileService;
         private bool _isReadmeTabEnabled;
+        private CancellationTokenSource _refreshButtonCts;
 
 
         private PackageManagerInstalledTabData _installedTabTelemetryData;
@@ -183,7 +184,11 @@ namespace NuGet.PackageManagement.UI
             }
 
             var sourceRepositories = sourceRepositoryProvider.GetRepositories();
-            _packageVulnerabilityService = new PackageVulnerabilityService(sourceRepositories, _uiLogger);
+
+            var refreshButtonCts = new CancellationTokenSource();
+            Interlocked.Exchange(ref _refreshButtonCts, refreshButtonCts);
+
+            _packageVulnerabilityService = new PackageVulnerabilityService(sourceRepositories, _refreshButtonCts.Token, _uiLogger);
 
             var solutionManager = Model.Context.SolutionManagerService;
             solutionManager.ProjectAdded += OnProjectChanged;
@@ -1051,7 +1056,7 @@ namespace NuGet.PackageManagement.UI
             IInstalledAndTransitivePackages installedAndTransitivePackages = await PackageCollection.GetInstalledAndTransitivePackagesAsync(loadContext.ServiceBroker, loadContext.Projects, includeTransitiveOrigins: true, token);
             installedPackageCollection = PackageCollection.FromPackageReferences(installedAndTransitivePackages.InstalledPackages);
             PackageCollection transitivePackageCollection = PackageCollection.FromPackageReferences(installedAndTransitivePackages.TransitivePackages.Where(p => p.TransitiveOrigins.Any()));
-            IEnumerable<IEnumerable<PackageVulnerabilityMetadataContextInfo>> transitivePackageVulnerabilities = await _packageVulnerabilityService.GetVulnerabilityInfoAsync(transitivePackageCollection, token);
+            IEnumerable<IEnumerable<PackageVulnerabilityMetadataContextInfo>> transitivePackageVulnerabilities = await _packageVulnerabilityService.GetVulnerabilityInfoAsync(transitivePackageCollection);
 
             foreach (IEnumerable<PackageVulnerabilityMetadataContextInfo> vulnerabilityInfo in transitivePackageVulnerabilities)
             {
@@ -1587,11 +1592,13 @@ namespace NuGet.PackageManagement.UI
             _loadCts?.Cancel();
             _refreshCts?.Cancel();
             _cancelSelectionChangedSource?.Cancel();
+            _refreshButtonCts?.Cancel();
 
             // make sure to dispose cancellation token source
             _loadCts?.Dispose();
             _refreshCts?.Dispose();
             _cancelSelectionChangedSource?.Dispose();
+            _refreshButtonCts?.Dispose();
 
             _packageDetail.Cleanup();
             _detailModel.Dispose();
@@ -1771,8 +1778,11 @@ namespace NuGet.PackageManagement.UI
 
         private async Task ExecuteRestartSearchCommandAsync()
         {
+            var refreshButtonCts = new CancellationTokenSource();
+            Interlocked.Exchange(ref _refreshButtonCts, refreshButtonCts);
+
             // reset vulnerability data
-            _packageVulnerabilityService?.ResetVulnerabilityData();
+            _packageVulnerabilityService?.ResetVulnerabilityData(_refreshButtonCts.Token);
             await SearchPackagesAndRefreshUpdateCountAsync(useCacheForUpdates: false);
             await RefreshConsolidatablePackagesCountAsync();
         }

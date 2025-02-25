@@ -905,8 +905,9 @@ namespace NuGet.PackageManagement.UI
         {
             cancellationToken.ThrowIfCancellationRequested();
 
+            // Use VS ShutdownToken to avoid cancellation of the task and 
             IEnumerable<PackageVulnerabilityMetadataContextInfo> vulnerabilityInfoList =
-                        await _vulnerabilityService.GetVulnerabilityInfoAsync(packageIdentity, cancellationToken);
+                        await _vulnerabilityService.GetVulnerabilityInfoAsync(packageIdentity);
 
             SetVulnerabilityMaxSeverity(packageIdentity.Version, vulnerabilityInfoList?.FirstOrDefault()?.Severity ?? -1);
         }
