@@ -18,12 +18,12 @@ namespace NuGet.ProjectModel
             WriteIndented = true,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             Converters = { new AssetsLogMessageConverter() }
         };
 
         /// <summary>
-        /// since Log messages property in CacheFile is an interface type, we have the following custom converter to deserialize the IAssetsLogMessage objects.
+        /// Since Log messages property in CacheFile is an interface type, we have the following custom converter to deserialize the IAssetsLogMessage objects.
         /// </summary>
         private class AssetsLogMessageConverter : JsonConverter<IAssetsLogMessage>
         {
@@ -85,8 +85,7 @@ namespace NuGet.ProjectModel
 
         private static void Write(TextWriter textWriter, CacheFile cacheFile)
         {
-            string jsonString = JsonSerializer.Serialize(cacheFile, SerializerOptions);
-            textWriter.Write(jsonString);
+            textWriter.Write(JsonSerializer.Serialize(cacheFile, SerializerOptions));
         }
     }
 }

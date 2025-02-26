@@ -38,8 +38,6 @@ namespace NuGet.ProjectModel
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public int EndColumnNumber { get; set; }
 
-        public AssetsLogMessage() { }
-
         public static IAssetsLogMessage Create(IRestoreLogMessage logMessage)
         {
             return new AssetsLogMessage(logMessage.Level, logMessage.Code, logMessage.Message)
@@ -56,6 +54,35 @@ namespace NuGet.ProjectModel
             };
         }
 
+        [JsonConstructor]
+        private AssetsLogMessage(
+            LogLevel level,
+            NuGetLogCode code,
+            string message,
+            string projectPath,
+            WarningLevel warningLevel,
+            string filePath,
+            string libraryId,
+            IReadOnlyList<string> targetGraphs,
+            int startLineNumber,
+            int startColumnNumber,
+            int endLineNumber,
+            int endColumnNumber)
+        {
+            Level = level;
+            Code = code;
+            Message = message;
+            ProjectPath = projectPath;
+            WarningLevel = warningLevel;
+            FilePath = filePath;
+            LibraryId = libraryId;
+            TargetGraphs = targetGraphs ?? new List<string>();
+            StartLineNumber = startLineNumber;
+            StartColumnNumber = startColumnNumber;
+            EndLineNumber = endLineNumber;
+            EndColumnNumber = endColumnNumber;
+        }
+
         public AssetsLogMessage(LogLevel logLevel, NuGetLogCode errorCode,
             string errorString, string targetGraph)
         {
@@ -69,11 +96,6 @@ namespace NuGet.ProjectModel
                 {
                     targetGraph
                 };
-            }
-
-            if (logLevel == LogLevel.Warning)
-            {
-                WarningLevel = WarningLevel.Severe; // setting default to Severe as 0 implies show no warnings
             }
         }
 

@@ -13,25 +13,25 @@ namespace NuGet.ProjectModel
     {
         internal const int CurrentVersion = 2;
 
-        [JsonPropertyName(CacheFileProperties.VersionProperty)]
+        [JsonPropertyName("version")]
         public int Version { get; set; }
 
-        [JsonPropertyName(CacheFileProperties.DGSpecHashProperty)]
+        [JsonPropertyName("dgSpecHash")]
         public string DgSpecHash { get; }
 
-        [JsonPropertyName(CacheFileProperties.SuccessProperty)]
+        [JsonPropertyName("success")]
         public bool Success { get; set; }
 
         /// <summary>
         /// Gets or sets the full path to the project file.
         /// </summary>
-        [JsonPropertyName(CacheFileProperties.ProjectFilePathProperty)]
+        [JsonPropertyName("projectFilePath")]
         public string ProjectFilePath { get; set; }
 
         /// <summary>
         /// Gets or sets a list of package paths that must exist in order for the project to be considered up-to-date.
         /// </summary>
-        [JsonPropertyName(CacheFileProperties.ExpectedPackageFilesProperty)]
+        [JsonPropertyName("expectedPackageFiles")]
         public IList<string> ExpectedPackageFilePaths { get; set; }
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace NuGet.ProjectModel
             set => throw new NotImplementedException("This API is no longer support");
         }
 
-        [JsonPropertyName(CacheFileProperties.LogsProperty)]
+        [JsonPropertyName("logs")]
         public IList<IAssetsLogMessage> LogMessages { get; set; }
 
         [JsonIgnore]
