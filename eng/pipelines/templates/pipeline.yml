@@ -215,8 +215,13 @@ stages:
         displayName: 'Publish binlogs'
         condition: "or(failed(), eq(variables['PublishArtifactsToDotNetBuildAssetRegistry'], 'true'), eq(variables['System.debug'], 'true'))"
         artifactName: binlog - $(System.JobDisplayName) - Attempt $(System.JobAttempt)
-        targetPath: $(Build.StagingDirectory)\binlog
+        targetPath: "$(Build.StagingDirectory)\binlog"
         sbomEnabled: false
+
+      - output: pipelineArtifact
+        displayName: Publish SBOM manifest
+        artifactName: "$(VsixPublishDir)"
+        targetPath: "$(Build.SourcesDirectory)/artifacts"
 
     steps:
     - template: /eng/pipelines/templates/Build_and_UnitTest.yml@self
