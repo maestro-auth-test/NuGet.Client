@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 using NuGet.Common;
 using NuGet.Shared;
@@ -12,10 +11,10 @@ namespace NuGet.ProjectModel
 {
     public class AssetsLogMessage : IAssetsLogMessage, IEquatable<IAssetsLogMessage>
     {
-        [JsonConverter(typeof(ToStringConverter<LogLevel>))]
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public LogLevel Level { get; }
 
-        [JsonConverter(typeof(ToStringConverter<NuGetLogCode>))]
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public NuGetLogCode Code { get; }
         public string Message { get; }
         public string ProjectPath { get; set; }
@@ -97,6 +96,12 @@ namespace NuGet.ProjectModel
                     targetGraph
                 };
             }
+
+            if (logLevel == LogLevel.Warning)
+            {
+                //setting default to Severe as 0 implies show no warnings
+                WarningLevel = WarningLevel.Severe;
+            }
         }
 
         public AssetsLogMessage(LogLevel logLevel, NuGetLogCode errorCode, string errorString)
@@ -148,26 +153,6 @@ namespace NuGet.ProjectModel
             combiner.AddObject((int)Code);
 
             return combiner.CombinedHash;
-        }
-
-        private class ToStringConverter<T> : JsonConverter<T>
-        {
-            public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-            {
-                return default;
-            }
-
-            public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
-            {
-                if (value == null)
-                {
-                    writer.WriteNullValue();
-                }
-                else
-                {
-                    writer.WriteStringValue(value.ToString());
-                }
-            }
         }
     }
 }

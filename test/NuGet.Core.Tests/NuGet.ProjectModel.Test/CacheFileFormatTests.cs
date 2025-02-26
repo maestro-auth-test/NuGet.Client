@@ -115,9 +115,10 @@ namespace NuGet.ProjectModel.Test
   ],
   ""logs"": [
     {{
-      ""level"": ""Information"",
-      ""code"": ""NU1000"",
-      ""message"": ""Test""
+      ""level"": ""Warning"",
+      ""code"": ""NU5003"",
+      ""message"": ""Test"",
+      ""warningLevel"": 1
     }}
   ]
 }}";
@@ -133,7 +134,7 @@ namespace NuGet.ProjectModel.Test
                 },
                     LogMessages = new List<IAssetsLogMessage>
                 {
-                    new AssetsLogMessage(LogLevel.Information, NuGetLogCode.NU1000, "Test")
+                    new AssetsLogMessage(LogLevel.Warning, NuGetLogCode.NU5003, "Test")
                 }
                 };
 
@@ -234,6 +235,184 @@ namespace NuGet.ProjectModel.Test
                 Assert.Contains("\"logs\": [", actual);
                 Assert.Contains("Warning message", actual);
             }
+        }
+
+        [Fact]
+        public void Read_WhenJsonIsEmpty_LogsWarning()
+        {
+            // Arrange
+            var logger = new TestLogger();
+            var contents = "";
+
+            using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(contents)))
+            {
+                // Act
+                var cacheFile = CacheFileFormat.Read(stream, logger, "emptyPath");
+
+                // Assert
+                Assert.False(cacheFile.IsValid);
+                Assert.Equal(1, logger.Warnings);
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(GetCacheFileTestData))]
+        public void WriteRead_ValidValues_RoundTripTest(
+        int version,
+        string dgSpecHash,
+        bool success,
+        string projectFilePath,
+        string[] expectedPackageFilePaths,
+        List<IAssetsLogMessage> logMessages)
+        {
+            // Arrange
+            var originalCacheFile = new CacheFile(dgSpecHash)
+            {
+                Version = version,
+                Success = success,
+                ProjectFilePath = projectFilePath,
+                ExpectedPackageFilePaths = expectedPackageFilePaths != null ? new List<string>(expectedPackageFilePaths) : null,
+                LogMessages = logMessages
+            };
+
+            string json;
+
+            // Act - Serialize
+            using (var stream = new MemoryStream())
+            {
+                CacheFileFormat.Write(stream, originalCacheFile);
+                json = Encoding.UTF8.GetString(stream.ToArray());
+            }
+
+            // Assert - Serializer
+            Assert.Contains($"\"version\": {version}", json);
+            Assert.Contains($"\"dgSpecHash\": \"{dgSpecHash}\"", json);
+            Assert.Contains($"\"success\": {success.ToString().ToLower()}", json);
+
+            if (projectFilePath != null)
+            {
+                Assert.Contains($"\"projectFilePath\": \"{projectFilePath}\"", json);
+            }
+            else
+            {
+                Assert.DoesNotContain("\"projectFilePath\"", json);
+            }
+
+            if (expectedPackageFilePaths != null)
+            {
+                Assert.Contains("\"expectedPackageFiles\":", json);
+                foreach (var path in expectedPackageFilePaths)
+                {
+                    Assert.Contains($"\"{path}\"", json);
+                }
+            }
+            else
+            {
+                Assert.DoesNotContain("\"expectedPackageFiles\"", json);
+            }
+
+            if (logMessages != null)
+            {
+                Assert.Contains("\"logs\":", json);
+                foreach (var log in logMessages)
+                {
+                    Assert.Contains($"\"message\": \"{log.Message}\"", json);
+                }
+            }
+            else
+            {
+                Assert.DoesNotContain("\"logs\"", json);
+            }
+
+            // Act - Deserialize
+            using (var deserializationStream = new MemoryStream(Encoding.UTF8.GetBytes(json)))
+            {
+                var logger = new TestLogger();
+                var deserializedCacheFile = CacheFileFormat.Read(deserializationStream, logger, "testPath");
+
+                // Assert - Deserializer
+                Assert.Equal(version, deserializedCacheFile.Version);
+                Assert.Equal(dgSpecHash, deserializedCacheFile.DgSpecHash);
+                Assert.Equal(success, deserializedCacheFile.Success);
+                Assert.Equal(projectFilePath, deserializedCacheFile.ProjectFilePath);
+
+                if (expectedPackageFilePaths != null)
+                {
+                    Assert.NotNull(deserializedCacheFile.ExpectedPackageFilePaths);
+                    Assert.Equal(expectedPackageFilePaths.Length, deserializedCacheFile.ExpectedPackageFilePaths.Count);
+                    Assert.Equal(expectedPackageFilePaths, deserializedCacheFile.ExpectedPackageFilePaths);
+                }
+                else
+                {
+                    Assert.Null(deserializedCacheFile.ExpectedPackageFilePaths);
+                }
+
+                if (logMessages != null)
+                {
+                    Assert.NotNull(deserializedCacheFile.LogMessages);
+                    Assert.Equal(logMessages.Count, deserializedCacheFile.LogMessages.Count);
+                    for (int i = 0; i < logMessages.Count; i++)
+                    {
+                        Assert.Equal(logMessages[i].Message, deserializedCacheFile.LogMessages[i].Message);
+                        Assert.Equal(logMessages[i].Code, deserializedCacheFile.LogMessages[i].Code);
+                        Assert.Equal(logMessages[i].Level, deserializedCacheFile.LogMessages[i].Level);
+                    }
+                }
+                else
+                {
+                    Assert.Null(deserializedCacheFile.LogMessages);
+                }
+            }
+        }
+
+        public static IEnumerable<object[]> GetCacheFileTestData()
+        {
+            yield return new object[]
+            {
+                2,
+                "hash1",
+                true,
+                "projectPath1",
+                new string[] { "package1", "package2" },
+                new List<IAssetsLogMessage>
+                {
+                    new AssetsLogMessage(LogLevel.Information, NuGetLogCode.NU1000, "Log message 1"),
+                    new AssetsLogMessage(LogLevel.Warning, NuGetLogCode.NU1002, "Log message 2")
+                }
+            };
+
+            yield return new object[]
+            {
+                2,
+                "hash2",
+                false,
+                "projectPath2",
+                new string[] { "package3" },
+                new List<IAssetsLogMessage>
+                {
+                    new AssetsLogMessage(LogLevel.Error, NuGetLogCode.NU3000, "failure message")
+                }
+            };
+
+            yield return new object[]
+            {
+                2,
+                "hash3",
+                true,
+                null,
+                new string[] { },
+                null
+            };
+
+            yield return new object[]
+            {
+                2,
+                "hash4",
+                false,
+                "projectPath4",
+                null,
+                new List<IAssetsLogMessage>()
+            };
         }
     }
 }
