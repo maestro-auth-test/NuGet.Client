@@ -19,8 +19,14 @@ namespace NuGet.ProjectModel
         public string Message { get; }
         public string ProjectPath { get; set; }
 
+        [JsonIgnore]
+        public WarningLevel WarningLevel { get; set; } = WarningLevel.Severe; //setting default to Severe as 0 implies show no warnings
+
+        [JsonInclude]
+        [JsonPropertyName("warningLevel")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-        public WarningLevel WarningLevel { get; set; }
+        internal WarningLevel? WarningLevelJson => ShouldSerializeWarningLevel() ? WarningLevel : null;
+
         public string FilePath { get; set; }
         public string LibraryId { get; set; }
         public IReadOnlyList<string> TargetGraphs { get; set; }
@@ -36,6 +42,7 @@ namespace NuGet.ProjectModel
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public int EndColumnNumber { get; set; }
+        private bool ShouldSerializeWarningLevel() => Level == LogLevel.Warning;
 
         public static IAssetsLogMessage Create(IRestoreLogMessage logMessage)
         {
@@ -95,12 +102,6 @@ namespace NuGet.ProjectModel
                 {
                     targetGraph
                 };
-            }
-
-            if (logLevel == LogLevel.Warning)
-            {
-                //setting default to Severe as 0 implies show no warnings
-                WarningLevel = WarningLevel.Severe;
             }
         }
 
