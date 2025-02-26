@@ -23,9 +23,19 @@ namespace NuGet.ProjectModel
         public WarningLevel WarningLevel { get; set; } = WarningLevel.Severe; //setting default to Severe as 0 implies show no warnings
 
         [JsonInclude]
-        [JsonPropertyName("warningLevel")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-        internal WarningLevel? WarningLevelJson => ShouldSerializeWarningLevel() ? WarningLevel : null;
+        [JsonPropertyName("warningLevel")]
+        internal WarningLevel? WarningLevelJson
+        {
+            get => Level == LogLevel.Warning ? WarningLevel : null;
+            set
+            {
+                if (value.HasValue)
+                {
+                    WarningLevel = value.Value;
+                }
+            }
+        }
 
         public string FilePath { get; set; }
         public string LibraryId { get; set; }
@@ -42,7 +52,6 @@ namespace NuGet.ProjectModel
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public int EndColumnNumber { get; set; }
-        private bool ShouldSerializeWarningLevel() => Level == LogLevel.Warning;
 
         public static IAssetsLogMessage Create(IRestoreLogMessage logMessage)
         {
@@ -66,7 +75,6 @@ namespace NuGet.ProjectModel
             NuGetLogCode code,
             string message,
             string projectPath,
-            WarningLevel warningLevel,
             string filePath,
             string libraryId,
             IReadOnlyList<string> targetGraphs,
@@ -79,7 +87,6 @@ namespace NuGet.ProjectModel
             Code = code;
             Message = message;
             ProjectPath = projectPath;
-            WarningLevel = warningLevel;
             FilePath = filePath;
             LibraryId = libraryId;
             TargetGraphs = targetGraphs ?? new List<string>();

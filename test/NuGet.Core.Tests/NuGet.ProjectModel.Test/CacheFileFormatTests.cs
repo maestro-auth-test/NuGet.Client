@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
 using NuGet.Common;
@@ -67,8 +68,9 @@ namespace NuGet.ProjectModel.Test
   ""logs"": [
     {{
       ""code"": ""NU1000"",
-      ""level"": ""Information"",
-      ""message"": ""Test""
+      ""level"": ""Warning"",
+      ""message"": ""Test"",
+      ""warningLevel"": 2
     }}
   ]
 }}";
@@ -82,6 +84,8 @@ namespace NuGet.ProjectModel.Test
                 Assert.Equal(bool.Parse(success), cacheFile.Success);
                 Assert.Equal(dgSpecHash, cacheFile.DgSpecHash);
                 Assert.Equal(int.Parse(version), cacheFile.Version);
+                Assert.Equal(WarningLevel.Important, cacheFile.LogMessages.FirstOrDefault().WarningLevel);
+                Assert.Equal(LogLevel.Warning, cacheFile.LogMessages.FirstOrDefault().Level);
 
                 Assert.Equal(projectFullPath, cacheFile.ProjectFilePath);
                 Assert.Equal(1, cacheFile.LogMessages.Count);
