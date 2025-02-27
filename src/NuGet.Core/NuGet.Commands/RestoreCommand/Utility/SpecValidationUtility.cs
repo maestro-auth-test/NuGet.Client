@@ -164,7 +164,7 @@ namespace NuGet.Commands
                     Strings.SpecValidationInvalidFramework,
                     framework.GetShortFolderName());
 
-                logger.Log(new RestoreLogMessage(LogLevel.Error, NuGetLogCode.NU1214, message));
+                logger.Log(new RestoreLogMessage(LogLevel.Error, NuGetLogCode.NU1105, message));
 
                 throw RestoreSpecException.Create("", files);
             }

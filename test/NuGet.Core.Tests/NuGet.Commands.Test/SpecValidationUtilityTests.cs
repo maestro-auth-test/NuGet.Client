@@ -91,7 +91,7 @@ namespace NuGet.Commands.Test
             }
 
             // Assert
-            Assert.Contains(NuGetLogCode.NU1214.ToString(), errors);
+            Assert.Contains(NuGetLogCode.NU1105.ToString(), errors);
             Assert.Contains(project.FilePath, exception);
         }
 
