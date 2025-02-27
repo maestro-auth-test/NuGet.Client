@@ -1,9 +1,12 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Moq;
+using NuGet.Common;
 using NuGet.Frameworks;
 using NuGet.LibraryModel;
 using NuGet.ProjectModel;
@@ -53,6 +56,11 @@ namespace NuGet.Commands.Test
             // Arrange
             var spec = new DependencyGraphSpec();
             spec.AddRestore("a");
+            var errors = new List<string>();
+            string exception = "";
+            var mockLogger = new Mock<ILogger>();
+            mockLogger.Setup(l => l.Log(It.IsAny<ILogMessage>()))
+                .Callback((ILogMessage message) => { errors.Add(message.Code.ToString()); });
 
             var targetFramework = new TargetFrameworkInformation()
             {
@@ -72,8 +80,19 @@ namespace NuGet.Commands.Test
 
             spec.AddProject(project);
 
-            // Act && Assert
-            AssertError(spec, "Invalid target framework");
+            // Act
+            try
+            {
+                SpecValidationUtility.ValidateDependencySpec(spec, new HashSet<string>(), mockLogger.Object);
+            }
+            catch (Exception ex)
+            {
+                exception = ex.Message;
+            }
+
+            // Assert
+            Assert.Contains(NuGetLogCode.NU1214.ToString(), errors);
+            Assert.Contains(project.FilePath, exception);
         }
 
         [Fact]
