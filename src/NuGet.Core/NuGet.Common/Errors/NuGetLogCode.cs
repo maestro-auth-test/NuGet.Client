@@ -218,6 +218,11 @@ namespace NuGet.Common
         NU1213 = 1213,
 
         /// <summary>
+        /// Invalid target framework
+        /// </summary>
+        NU1214 = 1214,
+
+        /// <summary>
         /// Package Source is unreachable.
         /// </summary>
         NU1301 = 1301,

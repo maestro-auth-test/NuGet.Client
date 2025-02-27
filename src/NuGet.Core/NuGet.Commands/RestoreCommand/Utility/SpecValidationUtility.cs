@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using NuGet.Common;
 using NuGet.Frameworks;
 using NuGet.LibraryModel;
 using NuGet.ProjectModel;
@@ -27,6 +28,11 @@ namespace NuGet.Commands
         /// </summary>
         public static void ValidateDependencySpec(DependencyGraphSpec spec, HashSet<string> projectsToSkip)
         {
+            ValidateDependencySpec(spec, projectsToSkip, new NullLogger());
+        }
+
+        public static void ValidateDependencySpec(DependencyGraphSpec spec, HashSet<string> projectsToSkip, ILogger logger)
+        {
             if (spec == null)
             {
                 throw new ArgumentNullException(nameof(spec));
@@ -39,7 +45,7 @@ namespace NuGet.Commands
                 {
                     if (!projectsToSkip.Contains(projectSpec.FilePath))
                     {
-                        ValidateProjectSpec(projectSpec);
+                        ValidateProjectSpec(projectSpec, logger);
                     }
                 }
 
@@ -77,6 +83,11 @@ namespace NuGet.Commands
         }
 
         public static void ValidateProjectSpec(PackageSpec spec)
+        {
+            ValidateProjectSpec(spec, new NullLogger());
+        }
+
+        private static void ValidateProjectSpec(PackageSpec spec, ILogger logger)
         {
             if (spec == null)
             {
@@ -123,15 +134,15 @@ namespace NuGet.Commands
                 switch (projectStyle)
                 {
                     case ProjectStyle.PackageReference:
-                        ValidateProjectSpecPackageReference(spec, files);
+                        ValidateProjectSpecPackageReference(spec, files, logger);
                         break;
 
                     case ProjectStyle.DotnetToolReference:
-                        ValidateProjectSpecPackageReference(spec, files);
+                        ValidateProjectSpecPackageReference(spec, files, logger);
                         break;
 
                     case ProjectStyle.ProjectJson:
-                        ValidateProjectSpecUAP(spec, files);
+                        ValidateProjectSpecUAP(spec, files, logger);
                         break;
 
                     default:
@@ -141,7 +152,7 @@ namespace NuGet.Commands
             }
         }
 
-        private static void ValidateFrameworks(PackageSpec spec, IEnumerable<string> files)
+        private static void ValidateFrameworks(PackageSpec spec, IEnumerable<string> files, ILogger logger)
         {
             var frameworks = spec.TargetFrameworks.Select(f => f.FrameworkName).ToArray();
 
@@ -153,7 +164,9 @@ namespace NuGet.Commands
                     Strings.SpecValidationInvalidFramework,
                     framework.GetShortFolderName());
 
-                throw RestoreSpecException.Create(message, files);
+                logger.Log(new RestoreLogMessage(LogLevel.Error, NuGetLogCode.NU1214, message));
+
+                throw RestoreSpecException.Create("", files);
             }
 
             // Must have at least 1 framework
@@ -175,10 +188,10 @@ namespace NuGet.Commands
             }
         }
 
-        private static void ValidateProjectSpecPackageReference(PackageSpec spec, IEnumerable<string> files)
+        private static void ValidateProjectSpecPackageReference(PackageSpec spec, IEnumerable<string> files, ILogger logger)
         {
             // Verify frameworks
-            ValidateFrameworks(spec, files);
+            ValidateFrameworks(spec, files, logger);
 
             // NETCore may not specify a project.json file
             if (!string.IsNullOrEmpty(spec.RestoreMetadata.ProjectJsonPath))
@@ -234,10 +247,10 @@ namespace NuGet.Commands
             }
         }
 
-        private static void ValidateProjectSpecUAP(PackageSpec spec, IEnumerable<string> files)
+        private static void ValidateProjectSpecUAP(PackageSpec spec, IEnumerable<string> files, ILogger logger)
         {
             // Verify frameworks
-            ValidateFrameworks(spec, files);
+            ValidateFrameworks(spec, files, logger);
 
             // UAP may contain only 1 framework
             if (spec.TargetFrameworks.Count != 1)
