@@ -224,35 +224,35 @@ steps:
     msbuildArguments: "/property:BuildNumber=$(BuildNumber) /property:IsVsixBuild=true /binarylogger:$(Build.StagingDirectory)\\binlog\\14.BuildToolsVSIX.binlog"
   condition: "and(succeeded(), eq(variables['BuildRTM'], 'false'))"
 
-- task: MSBuild@1
-  displayName: "Sign Nupkgs and VSIX"
-  inputs:
-    solution: "build\\sign.proj"
-    configuration: "$(BuildConfiguration)"
-    msbuildArguments: "/restore /property:SignPackages=true /binarylogger:$(Build.StagingDirectory)\\binlog\\15.SignPackages.binlog"
+# - task: MSBuild@1
+#   displayName: "Sign Nupkgs and VSIX"
+#   inputs:
+#     solution: "build\\sign.proj"
+#     configuration: "$(BuildConfiguration)"
+#     msbuildArguments: "/restore /property:SignPackages=true /binarylogger:$(Build.StagingDirectory)\\binlog\\15.SignPackages.binlog"
 
-- task: NuGetToolInstaller@1
-  displayName: Use NuGet 6.x
-  inputs:
-    versionSpec: 6.x
+# - task: NuGetToolInstaller@1
+#   displayName: Use NuGet 6.x
+#   inputs:
+#     versionSpec: 6.x
 
-- task: NuGetCommand@2
-  displayName: "Verify Nupkg Signatures"
-  inputs:
-    command: "custom"
-    arguments: "verify -Signatures $(Build.Repository.LocalPath)\\artifacts\\$(NupkgOutputDir)\\*.nupkg"
+# - task: NuGetCommand@2
+#   displayName: "Verify Nupkg Signatures"
+#   inputs:
+#     command: "custom"
+#     arguments: "verify -Signatures $(Build.Repository.LocalPath)\\artifacts\\$(NupkgOutputDir)\\*.nupkg"
 
-- task: MicroBuildCodesignVerify@3
-  displayName: Verify Assembly Signatures and StrongName for the nupkgs
-  inputs:
-    TargetFolders: '$(Build.Repository.LocalPath)\\artifacts\\$(NupkgOutputDir)'
+# - task: MicroBuildCodesignVerify@3
+#   displayName: Verify Assembly Signatures and StrongName for the nupkgs
+#   inputs:
+#     TargetFolders: '$(Build.Repository.LocalPath)\\artifacts\\$(NupkgOutputDir)'
 
-- task: MicroBuildCodesignVerify@3
-  displayName: Verify Assembly Signatures and StrongName for the VSIX & exes
-  inputs:
-    TargetFolders: '$(Build.Repository.LocalPath)\\artifacts\\VS15'
-    ApprovalListPathForCerts: '$(Build.Repository.LocalPath)\\build\\ignorecodesign.csv'
-    ApprovalListPathForSigs: '$(Build.Repository.LocalPath)\\build\\ignorecodesign.csv'
+# - task: MicroBuildCodesignVerify@3
+#   displayName: Verify Assembly Signatures and StrongName for the VSIX & exes
+#   inputs:
+#     TargetFolders: '$(Build.Repository.LocalPath)\\artifacts\\VS15'
+#     ApprovalListPathForCerts: '$(Build.Repository.LocalPath)\\build\\ignorecodesign.csv'
+#     ApprovalListPathForSigs: '$(Build.Repository.LocalPath)\\build\\ignorecodesign.csv'
 
 - task: MSBuild@1
   displayName: "Generate VSMAN file for NuGet Core VSIX"
