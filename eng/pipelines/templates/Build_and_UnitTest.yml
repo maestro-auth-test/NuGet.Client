@@ -202,7 +202,7 @@ steps:
 #     arguments: "-BuildRTM:$$(BuildRTM) -NupkgOutputPath '$(Build.Repository.LocalPath)\\artifacts\\$(NupkgOutputDir)'"
 
 # - task: MSBuild@1
-#   displayName: "Ensure all Nupkgs and Symbols are created"
+#   displayName: "Ensure all Nupkgs and Symbodir /b /s | sortare created"
 #   inputs:
 #     solution: "build\\build.proj"
 #     configuration: "$(BuildConfiguration)"
@@ -218,21 +218,21 @@ steps:
 
 - script: |
     echo "Listing contents of $(Build.SourcesDirectory)"
-    ls $(Build.SourcesDirectory)
+    dir /b /s | sort$(Build.SourcesDirectory)
     echo "Listing contents of $(Build.ArtifactStagingDirectory)"
-    ls $(Build.ArtifactStagingDirectory)
+    dir /b /s | sort$(Build.ArtifactStagingDirectory)
     echo "Listing contents of $(Build.ArtifactStagingDirectory)/artifacts"
-    ls $(Build.ArtifactStagingDirectory)/artifacts
+    dir /b /s | sort$(Build.ArtifactStagingDirectory)/artifacts
     echo "Listing contents of $(Build.StagingDirectory)"
-    ls $(Build.StagingDirectory)
+    dir /b /s | sort$(Build.StagingDirectory)
     echo "Listing contents of $(Build.Repository.LocalPath)"
-    ls $(Build.Repository.LocalPath)
+    dir /b /s | sort$(Build.Repository.LocalPath)
     echo "Listing contents of $(Build.Repository.LocalPath)/artifacts"
-    ls $(Build.Repository.LocalPath)/artifacts
-  displayName: 'List Directory contents'
+    dir /b /s | sort$(Build.Repository.LocalPath)/artifacts
+  displayName: 'List Directory contents'  
 
 - task: MSBuild@1
-  displayName: "Generate Build Tools package"
+  displayName: "Generate Build Toodir /b /s | sortpackage"
   inputs:
     solution: "setup\\Microsoft.VisualStudio.NuGet.BuildTools\\Microsoft.VisualStudio.NuGet.BuildTools.vsmanproj"
     configuration: "$(BuildConfiguration)"
@@ -278,7 +278,7 @@ steps:
   condition: "and(succeeded(),eq(variables['BuildRTM'], 'false'))"
 
 - task: MSBuild@1
-  displayName: "Generate VSMAN file for Build Tools VSIX"
+  displayName: "Generate VSMAN file for Build Toodir /b /s | sortVSIX"
   inputs:
     solution: "setup\\Microsoft.VisualStudio.NuGet.BuildTools\\Microsoft.VisualStudio.NuGet.BuildTools.vsmanproj"
     configuration: "$(BuildConfiguration)"
