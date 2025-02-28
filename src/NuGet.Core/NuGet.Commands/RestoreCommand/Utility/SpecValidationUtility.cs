@@ -154,35 +154,40 @@ namespace NuGet.Commands
 
         private static void ValidateFrameworks(PackageSpec spec, IEnumerable<string> files, ILogger logger)
         {
-            var frameworks = spec.TargetFrameworks.Select(f => f.FrameworkName).ToArray();
+            var frameworkNames = spec.TargetFrameworks.Select(f => f.FrameworkName).ToArray();
+            HashSet<string> invalidFrameworks = new HashSet<string>();
 
             // Verify frameworks are valid
-            foreach (var framework in frameworks.Where(f => !f.IsSpecificFramework))
+            foreach (var framework in spec.TargetFrameworks.Where(f => !f.FrameworkName.IsSpecificFramework))
             {
-                var message = string.Format(
-                    CultureInfo.CurrentCulture,
-                    Strings.SpecValidationInvalidFramework,
-                    framework.GetShortFolderName());
+                if (!invalidFrameworks.Add(framework.TargetAlias))
+                {
+                    continue;
+                }
 
+                var message = string.Format(CultureInfo.CurrentCulture, Strings.SpecValidationInvalidFramework, framework.TargetAlias);
                 logger.Log(new RestoreLogMessage(LogLevel.Error, NuGetLogCode.NU1105, message));
+            }
 
+            if (invalidFrameworks.Count > 0)
+            {
                 throw RestoreSpecException.Create("", files);
             }
 
             // Must have at least 1 framework
-            if (frameworks.Length < 1)
+            if (frameworkNames.Length < 1)
             {
                 throw RestoreSpecException.Create(Strings.SpecValidationNoFrameworks, files);
             }
 
             // Duplicate frameworks may not exist
             // Change in ATF should *not* affect our duplicate check, so we use the full framework comparer.
-            if (frameworks.Length != frameworks.Distinct(NuGetFrameworkFullComparer.Instance).Count())
+            if (frameworkNames.Length != frameworkNames.Distinct(NuGetFrameworkFullComparer.Instance).Count())
             {
                 var message = string.Format(
                     CultureInfo.CurrentCulture,
                     Strings.SpecValidationDuplicateFrameworks,
-                    string.Join(", ", frameworks.Select(f => f.GetShortFolderName())));
+                    string.Join(", ", frameworkNames.Select(f => f.GetShortFolderName())));
 
                 throw RestoreSpecException.Create(message, files);
             }
