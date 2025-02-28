@@ -403,6 +403,10 @@ namespace NuGet.PackageManagement.VisualStudio
 
                 await configuredProject?.Services.PackageReferences.RemoveAsync(packageId);
             }
+
+            // Save the project
+            await _unconfiguredProject.SaveAsync();
+
             return true;
         }
 
