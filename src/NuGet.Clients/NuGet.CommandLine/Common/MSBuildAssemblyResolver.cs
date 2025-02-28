@@ -33,6 +33,11 @@ namespace NuGet.Common
 
             MSBuildDirectory = msbuildDirectory.TrimEnd(Path.DirectorySeparatorChar);
 
+            if (msbuildDirectory.EndsWith("MSBuild.exe", StringComparison.OrdinalIgnoreCase))
+            {
+                MSBuildDirectory = Path.GetDirectoryName(msbuildDirectory);
+            }
+
             MSBuildAssemblyDirectory = MSBuildDirectory;
 
             // 64-bit MSBuild is under an "amd64" folder but dependencies are in the parent folder.
