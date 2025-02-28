@@ -28,7 +28,7 @@ namespace NuGet.Commands
         /// </summary>
         public static void ValidateDependencySpec(DependencyGraphSpec spec, HashSet<string> projectsToSkip)
         {
-            ValidateDependencySpec(spec, projectsToSkip, new NullLogger());
+            ValidateDependencySpec(spec, projectsToSkip, NullLogger.Instance);
         }
 
         public static void ValidateDependencySpec(DependencyGraphSpec spec, HashSet<string> projectsToSkip, ILogger logger)
@@ -84,7 +84,7 @@ namespace NuGet.Commands
 
         public static void ValidateProjectSpec(PackageSpec spec)
         {
-            ValidateProjectSpec(spec, new NullLogger());
+            ValidateProjectSpec(spec, NullLogger.Instance);
         }
 
         private static void ValidateProjectSpec(PackageSpec spec, ILogger logger)

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using FluentAssertions;
 using Moq;
 using NuGet.Common;
 using NuGet.Frameworks;
@@ -56,11 +57,11 @@ namespace NuGet.Commands.Test
             // Arrange
             var spec = new DependencyGraphSpec();
             spec.AddRestore("a");
-            var errors = new List<string>();
+            var errors = new List<NuGetLogCode>();
             string exception = "";
             var mockLogger = new Mock<ILogger>();
             mockLogger.Setup(l => l.Log(It.IsAny<ILogMessage>()))
-                .Callback((ILogMessage message) => { errors.Add(message.Code.ToString()); });
+                .Callback((ILogMessage message) => { errors.Add(message.Code); });
 
             var targetFramework = new TargetFrameworkInformation()
             {
@@ -91,8 +92,8 @@ namespace NuGet.Commands.Test
             }
 
             // Assert
-            Assert.Contains(NuGetLogCode.NU1105.ToString(), errors);
-            Assert.Contains(project.FilePath, exception);
+            errors.Should().Contain(NuGetLogCode.NU1105);
+            exception.Should().Contain(project.FilePath);
         }
 
         [Fact]
