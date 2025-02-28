@@ -218,17 +218,17 @@ steps:
 
 - script: |
     echo "Listing contents of $(Build.SourcesDirectory)"
-    dir /b /s | sort$(Build.SourcesDirectory)
+    dir /b /s | sort $(Build.SourcesDirectory)
     echo "Listing contents of $(Build.ArtifactStagingDirectory)"
-    dir /b /s | sort$(Build.ArtifactStagingDirectory)
+    dir /b /s | sort $(Build.ArtifactStagingDirectory)
     echo "Listing contents of $(Build.ArtifactStagingDirectory)/artifacts"
-    dir /b /s | sort$(Build.ArtifactStagingDirectory)/artifacts
+    dir /b /s | sort $(Build.ArtifactStagingDirectory)/artifacts
     echo "Listing contents of $(Build.StagingDirectory)"
-    dir /b /s | sort$(Build.StagingDirectory)
+    dir /b /s | sort $(Build.StagingDirectory)
     echo "Listing contents of $(Build.Repository.LocalPath)"
-    dir /b /s | sort$(Build.Repository.LocalPath)
+    dir /b /s | sort $(Build.Repository.LocalPath)
     echo "Listing contents of $(Build.Repository.LocalPath)/artifacts"
-    dir /b /s | sort$(Build.Repository.LocalPath)/artifacts
+    dir /b /s | sort $(Build.Repository.LocalPath)/artifacts
   displayName: 'List Directory contents'  
 
 - task: MSBuild@1
