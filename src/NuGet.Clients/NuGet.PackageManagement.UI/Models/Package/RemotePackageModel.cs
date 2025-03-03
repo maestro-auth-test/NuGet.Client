@@ -20,7 +20,6 @@ namespace NuGet.PackageManagement.UI.Models.Package
             DateTimeOffset? dateTimeOffset = null,
             Uri? packageDetailsUrl = null,
             long? downloadCount = null,
-            Uri? iconUrl = null,
             IEnumerable<PackageDependencyGroup>? dependencySets = null)
             : base(identity, title, description, authors, projectUrl, tags, copyright)
         {
@@ -28,7 +27,6 @@ namespace NuGet.PackageManagement.UI.Models.Package
             Published = dateTimeOffset;
             PackageDetailsUrl = packageDetailsUrl;
             DownloadCount = downloadCount;
-            IconUrl = iconUrl;
             DependencySets = dependencySets;
         }
 
@@ -36,7 +34,6 @@ namespace NuGet.PackageManagement.UI.Models.Package
         public DateTimeOffset? Published { get; }
         public Uri? PackageDetailsUrl { get; }
         public long? DownloadCount { get; }
-        public Uri? IconUrl { get; }
         public IEnumerable<PackageDependencyGroup>? DependencySets { get; }
 
         // Capabilities
