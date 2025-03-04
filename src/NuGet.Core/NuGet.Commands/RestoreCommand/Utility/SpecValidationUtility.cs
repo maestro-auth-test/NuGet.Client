@@ -155,11 +155,16 @@ namespace NuGet.Commands
         private static void ValidateFrameworks(PackageSpec spec, IEnumerable<string> files, ILogger logger)
         {
             var frameworkNames = spec.TargetFrameworks.Select(f => f.FrameworkName).ToArray();
-            HashSet<string> invalidFrameworks = new HashSet<string>();
+            HashSet<string> invalidFrameworks;
 
             // Verify frameworks are valid
             foreach (var framework in spec.TargetFrameworks.Where(f => !f.FrameworkName.IsSpecificFramework))
             {
+                if (invalidFrameworks == null)
+                {
+                    invalidFrameworks = new HashSet<string>();
+                }
+                
                 if (!invalidFrameworks.Add(framework.TargetAlias))
                 {
                     continue;
