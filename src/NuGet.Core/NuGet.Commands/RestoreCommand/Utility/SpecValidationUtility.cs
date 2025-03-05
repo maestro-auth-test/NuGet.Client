@@ -156,7 +156,12 @@ namespace NuGet.Commands
         {
             bool hasInvalidFrameworks = false;
 
-            foreach (var framework in (spec?.TargetFrameworks ?? new List<TargetFrameworkInformation>()))
+            if (spec.TargetFrameworks == null)
+            {
+                throw RestoreSpecException.Create(Strings.SpecValidationNoFrameworks, files);
+            }
+
+            foreach (var framework in spec.TargetFrameworks)
             {
                 if (!framework.FrameworkName.IsSpecificFramework)
                 {
