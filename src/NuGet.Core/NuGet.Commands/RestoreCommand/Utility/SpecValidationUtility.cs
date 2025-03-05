@@ -154,7 +154,10 @@ namespace NuGet.Commands
 
         private static void ValidateFrameworks(PackageSpec spec, IEnumerable<string> files, ILogger logger)
         {
-            var invalidFrameworks = spec.TargetFrameworks.Where(f => !f.FrameworkName.IsSpecificFramework).Select(f => f.TargetAlias).ToList();
+            var invalidFrameworks = spec?.TargetFrameworks?
+                .Where(f => f?.FrameworkName.IsSpecificFramework == false)
+                .Select(f => f.TargetAlias)
+                .ToList() ?? new List<string>();
 
             foreach (var alias in invalidFrameworks)
             {
