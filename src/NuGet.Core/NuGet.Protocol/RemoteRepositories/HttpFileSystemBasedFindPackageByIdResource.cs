@@ -557,6 +557,7 @@ namespace NuGet.Protocol
                 builder.Add(parsedVersion);
             }
 
+            builder.Sort();
             return builder.ToImmutable();
         }
 
