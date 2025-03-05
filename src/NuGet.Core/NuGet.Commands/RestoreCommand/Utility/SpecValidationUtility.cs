@@ -154,32 +154,39 @@ namespace NuGet.Commands
 
         private static void ValidateFrameworks(PackageSpec spec, IEnumerable<string> files, ILogger logger)
         {
-            var invalidFrameworks = spec?.TargetFrameworks?
-                .Where(f => f?.FrameworkName.IsSpecificFramework == false)
-                .Select(f => f.TargetAlias)
-                .ToList() ?? new List<string>();
+            bool hasInvalidFrameworks = false;
 
-            foreach (var alias in invalidFrameworks)
+            foreach (var framework in (spec?.TargetFrameworks ?? new List<TargetFrameworkInformation>()))
             {
-                var message = string.Format(CultureInfo.CurrentCulture, Strings.SpecValidationInvalidFramework, alias);
-                logger.Log(new RestoreLogMessage(LogLevel.Error, NuGetLogCode.NU1105, message));
+                if (!framework.FrameworkName.IsSpecificFramework)
+                {
+                    hasInvalidFrameworks |= true;
+                    var message = string.Format(CultureInfo.CurrentCulture, Strings.SpecValidationInvalidFramework, framework.TargetAlias);
+                    logger.Log(new RestoreLogMessage(LogLevel.Error, NuGetLogCode.NU1105, message));
+                }
             }
 
-            if (invalidFrameworks.Count > 0)
+            if (hasInvalidFrameworks)
             {
                 throw RestoreSpecException.Create("", files);
             }
 
-            var frameworkNames = spec.TargetFrameworks.Select(f => f.FrameworkName).ToArray();
+            List<NuGetFramework> frameworkNames = new List<NuGetFramework>(spec.TargetFrameworks.Count);
+
+            foreach (var f in spec.TargetFrameworks)
+            {
+                frameworkNames.Add(f.FrameworkName);
+            }
+
             // Must have at least 1 framework
-            if (frameworkNames.Length < 1)
+            if (frameworkNames.Count < 1)
             {
                 throw RestoreSpecException.Create(Strings.SpecValidationNoFrameworks, files);
             }
 
             // Duplicate frameworks may not exist
             // Change in ATF should *not* affect our duplicate check, so we use the full framework comparer.
-            if (frameworkNames.Length != frameworkNames.Distinct(NuGetFrameworkFullComparer.Instance).Count())
+            if (frameworkNames.Count != frameworkNames.Distinct(NuGetFrameworkFullComparer.Instance).Count())
             {
                 var message = string.Format(
                     CultureInfo.CurrentCulture,
