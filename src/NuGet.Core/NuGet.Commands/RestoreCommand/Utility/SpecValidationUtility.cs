@@ -164,7 +164,7 @@ namespace NuGet.Commands
                 {
                     invalidFrameworks = new HashSet<string>();
                 }
-                
+
                 if (!invalidFrameworks.Add(framework.TargetAlias))
                 {
                     continue;
