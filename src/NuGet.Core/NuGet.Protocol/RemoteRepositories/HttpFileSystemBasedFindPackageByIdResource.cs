@@ -4,10 +4,13 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Common;
@@ -34,8 +37,8 @@ namespace NuGet.Protocol
         private const int DefaultMaxRetries = 3;
         private int _maxRetries;
         private readonly HttpSource _httpSource;
-        private readonly ConcurrentDictionary<string, AsyncLazy<SortedDictionary<NuGetVersion, PackageInfo>>> _packageInfoCache =
-            new ConcurrentDictionary<string, AsyncLazy<SortedDictionary<NuGetVersion, PackageInfo>>>(StringComparer.OrdinalIgnoreCase);
+        private readonly ConcurrentDictionary<string, AsyncLazy<ImmutableArray<NuGetVersion>?>> _packageInfoCache =
+            new ConcurrentDictionary<string, AsyncLazy<ImmutableArray<NuGetVersion>?>>(StringComparer.OrdinalIgnoreCase);
         private readonly IReadOnlyList<Uri> _baseUris;
         private readonly FindPackagesByIdNupkgDownloader _nupkgDownloader;
         private readonly EnhancedHttpRetryHelper _enhancedHttpRetryHelper;
@@ -127,9 +130,9 @@ namespace NuGet.Protocol
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var packageInfos = await EnsurePackagesAsync(id, cacheContext, logger, cancellationToken);
+                var packageVersions = await GetAvailablePackageVersionsAsync(id, cacheContext, logger, cancellationToken);
 
-                return packageInfos.Keys;
+                return packageVersions;
             }
             finally
             {
@@ -192,22 +195,24 @@ namespace NuGet.Protocol
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var packageInfos = await EnsurePackagesAsync(id, cacheContext, logger, cancellationToken);
+                var packageVersions = await GetAvailablePackageVersionsAsync(id, cacheContext, logger, cancellationToken);
 
-                PackageInfo packageInfo;
-                if (packageInfos.TryGetValue(version, out packageInfo))
+                if (!packageVersions.HasValue || packageVersions.Value.BinarySearch(version) < 0)
                 {
-                    var reader = await _nupkgDownloader.GetNuspecReaderFromNupkgAsync(
-                        packageInfo.Identity,
-                        packageInfo.ContentUri,
-                        cacheContext,
-                        logger,
-                        cancellationToken);
-
-                    return GetDependencyInfo(reader);
+                    // package version not found
+                    return null;
                 }
 
-                return null;
+                var nupkgUrl = GetNupkgUrl(retry: 0, id, version);
+
+                var reader = await _nupkgDownloader.GetNuspecReaderFromNupkgAsync(
+                    new PackageIdentity(id, version),
+                    nupkgUrl,
+                    cacheContext,
+                    logger,
+                    cancellationToken);
+
+                return GetDependencyInfo(reader);
             }
             finally
             {
@@ -278,21 +283,23 @@ namespace NuGet.Protocol
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var packageInfos = await EnsurePackagesAsync(id, cacheContext, logger, cancellationToken);
+                var packageVersions = await GetAvailablePackageVersionsAsync(id, cacheContext, logger, cancellationToken);
 
-                PackageInfo packageInfo;
-                if (packageInfos.TryGetValue(version, out packageInfo))
+                if (!packageVersions.HasValue || packageVersions.Value.BinarySearch(version) < 0)
                 {
-                    return await _nupkgDownloader.CopyNupkgToStreamAsync(
-                        packageInfo.Identity,
-                        packageInfo.ContentUri,
-                        destination,
-                        cacheContext,
-                        logger,
-                        cancellationToken);
+                    return false;
                 }
 
-                return false;
+                var packageIdentity = new PackageIdentity(id, version);
+                var nupkgUrl = GetNupkgUrl(retry: 0, id, version);
+
+                return await _nupkgDownloader.CopyNupkgToStreamAsync(
+                    packageIdentity,
+                    nupkgUrl,
+                    destination,
+                    cacheContext,
+                    logger,
+                    cancellationToken);
             }
             finally
             {
@@ -342,15 +349,13 @@ namespace NuGet.Protocol
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var packageInfos = await EnsurePackagesAsync(packageIdentity.Id, cacheContext, logger, cancellationToken);
-
-            PackageInfo packageInfo;
-            if (packageInfos.TryGetValue(packageIdentity.Version, out packageInfo))
+            var packageVersions = await GetAvailablePackageVersionsAsync(packageIdentity.Id, cacheContext, logger, cancellationToken);
+            if (!packageVersions.HasValue || packageVersions.Value.BinarySearch(packageIdentity.Version) < 0)
             {
-                return new RemotePackageArchiveDownloader(_httpSource.PackageSource, this, packageInfo.Identity, cacheContext, logger);
+                return null;
             }
 
-            return null;
+            return new RemotePackageArchiveDownloader(_httpSource.PackageSource, this, packageIdentity, cacheContext, logger);
         }
 
         /// <summary>
@@ -403,9 +408,9 @@ namespace NuGet.Protocol
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var packageInfos = await EnsurePackagesAsync(id, cacheContext, logger, cancellationToken);
+                var packageVersions = await GetAvailablePackageVersionsAsync(id, cacheContext, logger, cancellationToken);
 
-                return packageInfos.TryGetValue(version, out var packageInfo);
+                return packageVersions.HasValue && packageVersions.Value.BinarySearch(version) >= 0;
             }
             finally
             {
@@ -418,16 +423,16 @@ namespace NuGet.Protocol
             }
         }
 
-        private async Task<SortedDictionary<NuGetVersion, PackageInfo>> EnsurePackagesAsync(
+        private async Task<ImmutableArray<NuGetVersion>?> GetAvailablePackageVersionsAsync(
             string id,
             SourceCacheContext cacheContext,
             ILogger logger,
             CancellationToken cancellationToken)
         {
-            AsyncLazy<SortedDictionary<NuGetVersion, PackageInfo>> result = null;
+            AsyncLazy<ImmutableArray<NuGetVersion>?> result = null;
 
-            Func<string, AsyncLazy<SortedDictionary<NuGetVersion, PackageInfo>>> findPackages =
-                (keyId) => new AsyncLazy<SortedDictionary<NuGetVersion, PackageInfo>>(
+            Func<string, AsyncLazy<ImmutableArray<NuGetVersion>?>> findPackages =
+                (keyId) => new AsyncLazy<ImmutableArray<NuGetVersion>?>(
                     () => FindPackagesByIdAsync(
                         keyId,
                         cacheContext,
@@ -448,7 +453,7 @@ namespace NuGet.Protocol
             return await result;
         }
 
-        private async Task<SortedDictionary<NuGetVersion, PackageInfo>> FindPackagesByIdAsync(
+        private async Task<ImmutableArray<NuGetVersion>?> FindPackagesByIdAsync(
             string id,
             SourceCacheContext cacheContext,
             ILogger logger,
@@ -480,7 +485,7 @@ namespace NuGet.Protocol
                         },
                         async httpSourceResult =>
                         {
-                            var result = new SortedDictionary<NuGetVersion, PackageInfo>();
+                            ImmutableArray<NuGetVersion> result = [];
 
                             if (httpSourceResult.Status == HttpSourceResultStatus.OpenedFromDisk)
                             {
@@ -540,36 +545,26 @@ namespace NuGet.Protocol
             return null;
         }
 
-        private async Task<SortedDictionary<NuGetVersion, PackageInfo>> ConsumeFlatContainerIndexAsync(Stream stream, string id, string baseUri, CancellationToken token)
+        private static async Task<ImmutableArray<NuGetVersion>> ConsumeFlatContainerIndexAsync(Stream stream, string id, string baseUri, CancellationToken token)
         {
-            var doc = await stream.AsJObjectAsync(token);
+            var json = await JsonSerializer.DeserializeAsync<FlatContainerVersionList>(stream, cancellationToken: token);
 
-            var streamResults = new SortedDictionary<NuGetVersion, PackageInfo>();
+            var builder = ImmutableArray.CreateBuilder<NuGetVersion>(json.Versions.Count);
 
-            var versions = doc["versions"];
-            if (versions == null)
+            foreach (var versionString in json.Versions)
             {
-                return streamResults;
+                NuGetVersion parsedVersion = NuGetVersion.Parse(versionString);
+                builder.Add(parsedVersion);
             }
 
-            foreach (var packageInfo in versions
-                .Select(x => BuildModel(baseUri, id, x.ToString()))
-                .Where(x => x != null))
-            {
-                if (!streamResults.ContainsKey(packageInfo.Identity.Version))
-                {
-                    streamResults.Add(packageInfo.Identity.Version, packageInfo);
-                }
-            }
-
-            return streamResults;
+            return builder.ToImmutable();
         }
 
-        private PackageInfo BuildModel(string baseUri, string id, string version)
+        private string GetNupkgUrl(int retry, string id, NuGetVersion version)
         {
-            var parsedVersion = NuGetVersion.Parse(version);
-            var normalizedVersionString = parsedVersion.ToNormalizedString();
+            var normalizedVersionString = version.ToNormalizedString();
             string idInLowerCase = id.ToLowerInvariant();
+            var baseUri = _baseUris[retry % _baseUris.Count].OriginalString;
 
             var builder = StringBuilderPool.Shared.Rent(256);
 
@@ -585,20 +580,13 @@ namespace NuGet.Protocol
 
             string contentUri = StringBuilderPool.Shared.ToStringAndReturn(builder);
 
-            return new PackageInfo
-            {
-                Identity = new PackageIdentity(id, parsedVersion),
-                ContentUri = contentUri,
-            };
+            return contentUri;
         }
 
-        private class PackageInfo
+        record FlatContainerVersionList
         {
-            public PackageIdentity Identity { get; set; }
-
-            public string Path { get; set; }
-
-            public string ContentUri { get; set; }
+            [JsonPropertyName("versions")]
+            public List<string> Versions { get; set; }
         }
     }
 }
