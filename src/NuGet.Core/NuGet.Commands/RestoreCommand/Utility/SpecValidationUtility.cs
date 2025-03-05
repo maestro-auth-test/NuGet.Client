@@ -155,7 +155,7 @@ namespace NuGet.Commands
         private static void ValidateFrameworks(PackageSpec spec, IEnumerable<string> files, ILogger logger)
         {
             var frameworkNames = spec.TargetFrameworks.Select(f => f.FrameworkName).ToArray();
-            HashSet<string> invalidFrameworks;
+            HashSet<string> invalidFrameworks = null;
 
             // Verify frameworks are valid
             foreach (var framework in spec.TargetFrameworks.Where(f => !f.FrameworkName.IsSpecificFramework))
@@ -174,7 +174,7 @@ namespace NuGet.Commands
                 logger.Log(new RestoreLogMessage(LogLevel.Error, NuGetLogCode.NU1105, message));
             }
 
-            if (invalidFrameworks.Count > 0)
+            if (invalidFrameworks != null && invalidFrameworks.Count > 0)
             {
                 throw RestoreSpecException.Create("", files);
             }
