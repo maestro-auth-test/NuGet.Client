@@ -154,12 +154,12 @@ namespace NuGet.Commands
 
         private static void ValidateFrameworks(PackageSpec spec, IEnumerable<string> files, ILogger logger)
         {
-            bool hasInvalidFrameworks = false;
-
             if (spec.TargetFrameworks == null)
             {
                 throw RestoreSpecException.Create(Strings.SpecValidationNoFrameworks, files);
             }
+
+            bool hasInvalidFrameworks = false;
 
             foreach (var framework in spec.TargetFrameworks)
             {
