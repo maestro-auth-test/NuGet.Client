@@ -1,15 +1,22 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
+using NuGet.Protocol;
+using NuGet.VisualStudio.Internal.Contracts;
 
-#nullable enable
-
-namespace NuGet.PackageManagement.UI.Models.Package
+namespace NuGet.PackageManagement.UI
 {
     class RemotePackageModel : PackageModel
     {
-        public RemotePackageModel(PackageIdentity identity,
+        public RemotePackageModel(
+            PackageIdentity identity,
+            VulnerableCapability vulnerableCapability,
             string? title = null,
             string? description = null,
             string? authors = null,
@@ -28,14 +35,29 @@ namespace NuGet.PackageManagement.UI.Models.Package
             PackageDetailsUrl = packageDetailsUrl;
             DownloadCount = downloadCount;
             DependencySets = dependencySets;
+            VulnerableCapability = vulnerableCapability;
         }
 
-        public bool IsListed { get; set; }
+        public bool IsListed { get; }
         public DateTimeOffset? Published { get; }
         public Uri? PackageDetailsUrl { get; }
         public long? DownloadCount { get; }
         public IEnumerable<PackageDependencyGroup>? DependencySets { get; }
+        VulnerableCapability VulnerableCapability { get; }
 
-        // Capabilities
+        public IReadOnlyList<PackageVulnerabilityMetadataContextInfo> GetPackageVulnerabilities()
+        {
+            return VulnerableCapability.Vulnerabilities;
+        }
+
+        public bool IsPackageVulnerable()
+        {
+            return VulnerableCapability.IsVulnerable;
+        }
+
+        public PackageVulnerabilitySeverity GetPackageVulnerabilityMaxSeverity()
+        {
+            return VulnerableCapability.VulnerabilityMaxSeverity;
+        }
     }
 }

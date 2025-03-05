@@ -1,7 +1,13 @@
-using System;
-using NuGet.Packaging.Core;
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 #nullable enable
+
+using System;
+using System.Collections.Generic;
+using NuGet.Packaging.Core;
+using NuGet.Protocol;
+using NuGet.VisualStudio.Internal.Contracts;
 
 namespace NuGet.PackageManagement.UI
 {
@@ -9,6 +15,7 @@ namespace NuGet.PackageManagement.UI
     {
         public LocalPackageModel(PackageIdentity identity,
             string packagePath,
+            VulnerableCapability vulnerableCapability,
             string? title = null,
             string? description = null,
             string? authors = null,
@@ -18,8 +25,25 @@ namespace NuGet.PackageManagement.UI
             : base(identity, title, description, authors, projectUrl, tags, copyright)
         {
             PackagePath = packagePath;
+            VulnerableCapability = vulnerableCapability;
         }
 
-        public string PackagePath { get; set; }
+        public string PackagePath { get; }
+        VulnerableCapability VulnerableCapability { get; }
+
+        public IReadOnlyList<PackageVulnerabilityMetadataContextInfo> GetPackageVulnerabilities()
+        {
+            return VulnerableCapability.Vulnerabilities;
+        }
+
+        public bool IsPackageVulnerable()
+        {
+            return VulnerableCapability.IsVulnerable;
+        }
+
+        public PackageVulnerabilitySeverity GetPackageVulnerabilityMaxSeverity()
+        {
+            return VulnerableCapability.VulnerabilityMaxSeverity;
+        }
     }
 }
