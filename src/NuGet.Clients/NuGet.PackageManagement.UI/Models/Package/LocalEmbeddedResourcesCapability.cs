@@ -20,8 +20,8 @@ namespace NuGet.PackageManagement.UI.Models.Package
         public LocalEmbeddedResourcesCapability(Uri? iconUri, Uri? licenseUri, Uri? readmeUri)
         {
             IconUri = iconUri;
-            LicenseUri = licenseUri ?? throw new ArgumentNullException(nameof(licenseUri));
-            ReadmeUri = readmeUri ?? throw new ArgumentNullException(nameof(readmeUri));
+            LicenseUri = licenseUri;
+            ReadmeUri = readmeUri;
         }
 
         public Uri? IconUri { get; }
