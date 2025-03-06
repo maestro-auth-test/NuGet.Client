@@ -18,51 +18,13 @@ namespace NuGet.PackageManagement.UI.Test.Models
     public class EmbeddedResourcesCapabilityTests
     {
         [Fact]
-        public void LocalEmbeddedResourcesCapabilityCtor_SetsValues()
-        {
-            // Arrange
-            var icon = new Uri(@"C:\Path\To\Icon.png");
-            var license = new Uri(@"C:\Path\To\Icon.png");
-            var readme = new Uri(@"C:\Path\To\Icon.png");
-            var mockPackageFileService = new Mock<INuGetPackageFileService>();
-            var identity = new PackageIdentity("TestPackage", new NuGetVersion("1.0.0"));
-            var package = new TestPackageModel(identity);
-
-            // Act
-            var capability = new EmbeddedResourcesCapability(mockPackageFileService.Object, package, icon, license, readme);
-
-            // Assert
-            Assert.Equal(icon, capability.IconUri);
-            Assert.Equal(license, capability.LicenseUri);
-            Assert.Equal(readme, capability.ReadmeUri);
-        }
-
-        [Fact]
-        public void LocalEmbeddedResourcesCapabilityCtor_WithNullValues_SetsValues()
-        {
-            // Arrange
-            var mockPackageFileService = new Mock<INuGetPackageFileService>();
-            var identity = new PackageIdentity("TestPackage", new NuGetVersion("1.0.0"));
-            var package = new TestPackageModel(identity);
-
-            // Act
-            var capability = new EmbeddedResourcesCapability(mockPackageFileService.Object, package, null, null, null);
-
-            // Assert
-            Assert.Null(capability.IconUri);
-            Assert.Null(capability.LicenseUri);
-            Assert.Null(capability.ReadmeUri);
-        }
-
-        [Fact]
         public void LocalEmbeddedResourcesCapabilityCtor_WithNullService_Throws()
         {
             // Arrange
             var identity = new PackageIdentity("TestPackage", new NuGetVersion("1.0.0"));
-            var package = new TestPackageModel(identity);
 
             // Act & Assert
-            Assert.Throws<ArgumentNullException>(() => new EmbeddedResourcesCapability(null, package, null, null, null));
+            Assert.Throws<ArgumentNullException>(() => new EmbeddedResourcesCapability(null, identity, null));
         }
 
 
@@ -73,7 +35,7 @@ namespace NuGet.PackageManagement.UI.Test.Models
             var mockPackageFileService = new Mock<INuGetPackageFileService>();
 
             // Act & Assert
-            Assert.Throws<ArgumentNullException>(() => new EmbeddedResourcesCapability(mockPackageFileService.Object, null, null, null, null));
+            Assert.Throws<ArgumentNullException>(() => new EmbeddedResourcesCapability(mockPackageFileService.Object, null, null));
         }
 
         [Fact]
@@ -82,10 +44,9 @@ namespace NuGet.PackageManagement.UI.Test.Models
             // Arrange
             using Stream stream = new MemoryStream(Encoding.UTF8.GetBytes("stream"));
             var identity = new PackageIdentity("TestPackage", new NuGetVersion("1.0.0"));
-            var package = new TestPackageModel(identity);
             var mockPackageFileService = new Mock<INuGetPackageFileService>();
             mockPackageFileService.Setup(x => x.GetPackageIconAsync(It.IsAny<PackageIdentity>(), default)).ReturnsAsync(stream);
-            EmbeddedResourcesCapability test = new EmbeddedResourcesCapability(mockPackageFileService.Object, package, new Uri(@"C:\path\to\image.png"), null, null);
+            EmbeddedResourcesCapability test = new EmbeddedResourcesCapability(mockPackageFileService.Object, identity, null);
 
             // Act
             var result = await test.GetIconAsync(CancellationToken.None);
@@ -101,10 +62,9 @@ namespace NuGet.PackageManagement.UI.Test.Models
             // Arrange
             using Stream stream = new MemoryStream(Encoding.UTF8.GetBytes("stream"));
             var identity = new PackageIdentity("TestPackage", new NuGetVersion("1.0.0"));
-            var package = new TestPackageModel(identity);
             var mockPackageFileService = new Mock<INuGetPackageFileService>();
             mockPackageFileService.Setup(x => x.GetEmbeddedLicenseAsync(It.IsAny<PackageIdentity>(), default)).ReturnsAsync(stream);
-            EmbeddedResourcesCapability test = new EmbeddedResourcesCapability(mockPackageFileService.Object, package, null, new Uri(@"C:\path\to\image.png"), null);
+            EmbeddedResourcesCapability test = new EmbeddedResourcesCapability(mockPackageFileService.Object, identity, null);
 
             // Act
             var result = await test.GetLicenseAsync(CancellationToken.None);
@@ -121,10 +81,9 @@ namespace NuGet.PackageManagement.UI.Test.Models
             // Arrange
             using Stream stream = new MemoryStream(Encoding.UTF8.GetBytes("stream"));
             var identity = new PackageIdentity("TestPackage", new NuGetVersion("1.0.0"));
-            var package = new TestPackageModel(identity);
             var mockPackageFileService = new Mock<INuGetPackageFileService>();
             mockPackageFileService.Setup(x => x.GetReadmeAsync(It.IsAny<Uri>(), default)).ReturnsAsync(stream);
-            EmbeddedResourcesCapability test = new EmbeddedResourcesCapability(mockPackageFileService.Object, package, null, null, new Uri(@"C:\path\to\image.png"));
+            EmbeddedResourcesCapability test = new EmbeddedResourcesCapability(mockPackageFileService.Object, identity, new Uri(@"C:\path\to\image.png"));
 
             // Act
             var result = await test.GetReadmeAsync(CancellationToken.None);
@@ -140,10 +99,9 @@ namespace NuGet.PackageManagement.UI.Test.Models
             // Arrange
             using Stream stream = new MemoryStream(Encoding.UTF8.GetBytes("stream"));
             var identity = new PackageIdentity("TestPackage", new NuGetVersion("1.0.0"));
-            var package = new TestPackageModel(identity);
             var mockPackageFileService = new Mock<INuGetPackageFileService>();
             mockPackageFileService.Setup(x => x.GetReadmeAsync(It.IsAny<Uri>(), default)).ReturnsAsync(stream);
-            EmbeddedResourcesCapability test = new EmbeddedResourcesCapability(mockPackageFileService.Object, package, null, null, null);
+            EmbeddedResourcesCapability test = new EmbeddedResourcesCapability(mockPackageFileService.Object, identity, null);
 
             // Act
             var result = await test.GetReadmeAsync(CancellationToken.None);

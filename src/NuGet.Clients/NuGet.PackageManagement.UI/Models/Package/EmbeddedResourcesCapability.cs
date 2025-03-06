@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Packaging.Core;
 using NuGet.VisualStudio.Internal.Contracts;
 
 namespace NuGet.PackageManagement.UI.Models.Package
@@ -13,38 +14,31 @@ namespace NuGet.PackageManagement.UI.Models.Package
     internal class EmbeddedResourcesCapability : IEmbeddedResources
     {
         private INuGetPackageFileService _nugetPackageFileService;
-        private PackageModel _package;
+        private PackageIdentity _packageIdentity;
+        private Uri? _readmeUri;
 
-        public EmbeddedResourcesCapability(INuGetPackageFileService nugetPackageFileService, PackageModel package, Uri? iconUri, Uri? licenseUri, Uri? readmeUri)
+        public EmbeddedResourcesCapability(INuGetPackageFileService nugetPackageFileService, PackageIdentity packageIdentity, Uri? readmeUri)
         {
             _nugetPackageFileService = nugetPackageFileService ?? throw new ArgumentNullException(nameof(nugetPackageFileService));
-            _package = package ?? throw new ArgumentNullException(nameof(package));
-            IconUri = iconUri;
-            LicenseUri = licenseUri;
-            ReadmeUri = readmeUri;
+            _packageIdentity = packageIdentity ?? throw new ArgumentNullException(nameof(packageIdentity));
+            _readmeUri = readmeUri;
         }
-
-        public Uri? IconUri { get; }
-
-        public Uri? LicenseUri { get; }
-
-        public Uri? ReadmeUri { get; }
 
         public async Task<Stream?> GetIconAsync(CancellationToken cancellationToken)
         {
-            return await _nugetPackageFileService.GetPackageIconAsync(_package.Identity, cancellationToken);
+            return await _nugetPackageFileService.GetPackageIconAsync(_packageIdentity, cancellationToken);
         }
 
         public async Task<Stream?> GetLicenseAsync(CancellationToken cancellationToken)
         {
-            return await _nugetPackageFileService.GetEmbeddedLicenseAsync(_package.Identity, cancellationToken);
+            return await _nugetPackageFileService.GetEmbeddedLicenseAsync(_packageIdentity, cancellationToken);
         }
 
         public async Task<Stream?> GetReadmeAsync(CancellationToken cancellationToken)
         {
-            if (ReadmeUri != null)
+            if (_readmeUri != null)
             {
-                return await _nugetPackageFileService.GetReadmeAsync(ReadmeUri, cancellationToken);
+                return await _nugetPackageFileService.GetReadmeAsync(_readmeUri, cancellationToken);
             }
             return null;
         }
