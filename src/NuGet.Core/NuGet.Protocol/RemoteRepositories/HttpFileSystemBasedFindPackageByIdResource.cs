@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -37,9 +36,10 @@ namespace NuGet.Protocol
         private const int DefaultMaxRetries = 3;
         private int _maxRetries;
         private readonly HttpSource _httpSource;
-        private readonly ConcurrentDictionary<string, AsyncLazy<ImmutableArray<NuGetVersion>?>> _packageInfoCache =
-            new ConcurrentDictionary<string, AsyncLazy<ImmutableArray<NuGetVersion>?>>(StringComparer.OrdinalIgnoreCase);
+        private readonly ConcurrentDictionary<string, AsyncLazy<HashSet<NuGetVersion>>> _packageInfoCache =
+            new ConcurrentDictionary<string, AsyncLazy<HashSet<NuGetVersion>>>(StringComparer.OrdinalIgnoreCase);
         private readonly IReadOnlyList<Uri> _baseUris;
+        private string _chosenBaseUri;
         private readonly FindPackagesByIdNupkgDownloader _nupkgDownloader;
         private readonly EnhancedHttpRetryHelper _enhancedHttpRetryHelper;
 
@@ -197,13 +197,13 @@ namespace NuGet.Protocol
 
                 var packageVersions = await GetAvailablePackageVersionsAsync(id, cacheContext, logger, cancellationToken);
 
-                if (!packageVersions.HasValue || packageVersions.Value.BinarySearch(version) < 0)
+                if (!packageVersions.Contains(version))
                 {
                     // package version not found
                     return null;
                 }
 
-                var nupkgUrl = GetNupkgUrl(retry: 0, id, version);
+                var nupkgUrl = GetNupkgUrl(id, version);
 
                 var reader = await _nupkgDownloader.GetNuspecReaderFromNupkgAsync(
                     new PackageIdentity(id, version),
@@ -285,13 +285,13 @@ namespace NuGet.Protocol
 
                 var packageVersions = await GetAvailablePackageVersionsAsync(id, cacheContext, logger, cancellationToken);
 
-                if (!packageVersions.HasValue || packageVersions.Value.BinarySearch(version) < 0)
+                if (!packageVersions.Contains(version))
                 {
                     return false;
                 }
 
                 var packageIdentity = new PackageIdentity(id, version);
-                var nupkgUrl = GetNupkgUrl(retry: 0, id, version);
+                var nupkgUrl = GetNupkgUrl(id, version);
 
                 return await _nupkgDownloader.CopyNupkgToStreamAsync(
                     packageIdentity,
@@ -350,7 +350,7 @@ namespace NuGet.Protocol
             cancellationToken.ThrowIfCancellationRequested();
 
             var packageVersions = await GetAvailablePackageVersionsAsync(packageIdentity.Id, cacheContext, logger, cancellationToken);
-            if (!packageVersions.HasValue || packageVersions.Value.BinarySearch(packageIdentity.Version) < 0)
+            if (!packageVersions.Contains(packageIdentity.Version))
             {
                 return null;
             }
@@ -410,7 +410,7 @@ namespace NuGet.Protocol
 
                 var packageVersions = await GetAvailablePackageVersionsAsync(id, cacheContext, logger, cancellationToken);
 
-                return packageVersions.HasValue && packageVersions.Value.BinarySearch(version) >= 0;
+                return packageVersions.Contains(version);
             }
             finally
             {
@@ -423,16 +423,16 @@ namespace NuGet.Protocol
             }
         }
 
-        private async Task<ImmutableArray<NuGetVersion>?> GetAvailablePackageVersionsAsync(
+        private async Task<HashSet<NuGetVersion>> GetAvailablePackageVersionsAsync(
             string id,
             SourceCacheContext cacheContext,
             ILogger logger,
             CancellationToken cancellationToken)
         {
-            AsyncLazy<ImmutableArray<NuGetVersion>?> result = null;
+            AsyncLazy<HashSet<NuGetVersion>> result = null;
 
-            Func<string, AsyncLazy<ImmutableArray<NuGetVersion>?>> findPackages =
-                (keyId) => new AsyncLazy<ImmutableArray<NuGetVersion>?>(
+            Func<string, AsyncLazy<HashSet<NuGetVersion>>> findPackages =
+                (keyId) => new AsyncLazy<HashSet<NuGetVersion>>(
                     () => FindPackagesByIdAsync(
                         keyId,
                         cacheContext,
@@ -453,7 +453,7 @@ namespace NuGet.Protocol
             return await result;
         }
 
-        private async Task<ImmutableArray<NuGetVersion>?> FindPackagesByIdAsync(
+        private async Task<HashSet<NuGetVersion>> FindPackagesByIdAsync(
             string id,
             SourceCacheContext cacheContext,
             ILogger logger,
@@ -485,13 +485,14 @@ namespace NuGet.Protocol
                         },
                         async httpSourceResult =>
                         {
-                            ImmutableArray<NuGetVersion> result = [];
+                            HashSet<NuGetVersion> result = [];
 
                             if (httpSourceResult.Status == HttpSourceResultStatus.OpenedFromDisk)
                             {
                                 try
                                 {
                                     result = await ConsumeFlatContainerIndexAsync(httpSourceResult.Stream, id, baseUri, cancellationToken);
+                                    _chosenBaseUri = baseUri;
                                 }
                                 catch
                                 {
@@ -503,6 +504,7 @@ namespace NuGet.Protocol
                             else if (httpSourceResult.Status == HttpSourceResultStatus.OpenedFromNetwork)
                             {
                                 result = await ConsumeFlatContainerIndexAsync(httpSourceResult.Stream, id, baseUri, cancellationToken);
+                                _chosenBaseUri = baseUri;
                             }
 
                             return result;
@@ -542,44 +544,45 @@ namespace NuGet.Protocol
                 }
             }
 
-            return null;
+            return [];
         }
 
-        private static async Task<ImmutableArray<NuGetVersion>> ConsumeFlatContainerIndexAsync(Stream stream, string id, string baseUri, CancellationToken token)
+        private static async Task<HashSet<NuGetVersion>> ConsumeFlatContainerIndexAsync(Stream stream, string id, string baseUri, CancellationToken token)
         {
             var json = await JsonSerializer.DeserializeAsync<FlatContainerVersionList>(stream, cancellationToken: token);
 
-            var builder = ImmutableArray.CreateBuilder<NuGetVersion>(json.Versions.Count);
+            var result =
+#if NETSTANDARD
+                new HashSet<NuGetVersion>();
+#else
+                new HashSet<NuGetVersion>(capacity: json.Versions.Count);
+#endif
 
             foreach (var versionString in json.Versions)
             {
                 NuGetVersion parsedVersion = NuGetVersion.Parse(versionString);
-                builder.Add(parsedVersion);
+                result.Add(parsedVersion);
             }
 
-            builder.Sort();
-            return builder.ToImmutable();
+            return result;
         }
 
-        private string GetNupkgUrl(int retry, string id, NuGetVersion version)
+        private string GetNupkgUrl(string id, NuGetVersion version)
         {
-            var normalizedVersionString = version.ToNormalizedString();
+            var normalizedVersionString = version.ToNormalizedString().ToLowerInvariant();
             string idInLowerCase = id.ToLowerInvariant();
-            var baseUri = _baseUris[retry % _baseUris.Count].OriginalString;
+            var baseUri = _chosenBaseUri ?? _baseUris[0].OriginalString;
 
-            var builder = StringBuilderPool.Shared.Rent(256);
-
-            builder.Append(baseUri);
-            builder.Append(idInLowerCase);
-            builder.Append('/');
-            builder.Append(normalizedVersionString);
-            builder.Append('/');
-            builder.Append(idInLowerCase);
-            builder.Append('.');
-            builder.Append(normalizedVersionString);
-            builder.Append(".nupkg");
-
-            string contentUri = StringBuilderPool.Shared.ToStringAndReturn(builder);
+            string contentUri = string.Concat(
+                baseUri,
+                idInLowerCase,
+                "/",
+                normalizedVersionString,
+                "/",
+                idInLowerCase,
+                ".",
+                normalizedVersionString,
+                ".nupkg");
 
             return contentUri;
         }
