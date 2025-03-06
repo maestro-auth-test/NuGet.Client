@@ -18,7 +18,7 @@ namespace NuGet.PackageManagement.UI.Test.Models
     public class EmbeddedResourcesCapabilityTests
     {
         [Fact]
-        public void LocalEmbeddedResourcesCapabilityCtor_WithNullService_Throws()
+        public void EmbeddedResourcesCapabilityCtor_WithNullService_Throws()
         {
             // Arrange
             var identity = new PackageIdentity("TestPackage", new NuGetVersion("1.0.0"));
@@ -29,7 +29,7 @@ namespace NuGet.PackageManagement.UI.Test.Models
 
 
         [Fact]
-        public void LocalEmbeddedResourcesCapabilityCtor_WithNullPackagee_Throws()
+        public void EmbeddedResourcesCapabilityCtor_WithNullPackagee_Throws()
         {
             // Arrange
             var mockPackageFileService = new Mock<INuGetPackageFileService>();
