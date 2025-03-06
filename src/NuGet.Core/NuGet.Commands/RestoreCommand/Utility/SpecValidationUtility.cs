@@ -33,6 +33,8 @@ namespace NuGet.Commands
 
         public static void ValidateDependencySpec(DependencyGraphSpec spec, HashSet<string> projectsToSkip, ILogger logger)
         {
+            logger ??= NullLogger.Instance;
+
             if (spec == null)
             {
                 throw new ArgumentNullException(nameof(spec));
@@ -154,7 +156,6 @@ namespace NuGet.Commands
 
         private static void ValidateFrameworks(PackageSpec spec, IEnumerable<string> files, ILogger logger)
         {
-            logger ??= NullLogger.Instance;
 
             if (spec.TargetFrameworks == null)
             {
