@@ -209,13 +209,13 @@ stages:
         condition: "succeeded()"
         artifactName: LocValidationLogs
         targetPath: "$(Build.Repository.LocalPath)\\logs\\BuildValidatorLogs"
-        sbomEnabled: false
+        sbomEnabled: true
 
       - output: pipelineArtifact
         displayName: 'Publish binlogs'
         condition: "or(failed(), eq(variables['PublishArtifactsToDotNetBuildAssetRegistry'], 'true'), eq(variables['System.debug'], 'true'))"
         artifactName: binlog - $(System.JobDisplayName) - Attempt $(System.JobAttempt)
-        targetPath: "$(Build.StagingDirectory)\binlog"
+        targetPath: $(Build.StagingDirectory)\binlog
         sbomEnabled: false
 
       - output: pipelineArtifact
