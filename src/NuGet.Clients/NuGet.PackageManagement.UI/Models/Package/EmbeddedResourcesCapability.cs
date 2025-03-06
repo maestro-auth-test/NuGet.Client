@@ -24,17 +24,17 @@ namespace NuGet.PackageManagement.UI.Models.Package
             _readmeUri = readmeUri;
         }
 
-        public async Task<Stream?> GetIconAsync(CancellationToken cancellationToken)
+        public ValueTask<Stream?> GetIconAsync(CancellationToken cancellationToken)
         {
-            return await _nugetPackageFileService.GetPackageIconAsync(_packageIdentity, cancellationToken);
+            return _nugetPackageFileService.GetPackageIconAsync(_packageIdentity, cancellationToken);
         }
 
-        public async Task<Stream?> GetLicenseAsync(CancellationToken cancellationToken)
+        public ValueTask<Stream?> GetLicenseAsync(CancellationToken cancellationToken)
         {
-            return await _nugetPackageFileService.GetEmbeddedLicenseAsync(_packageIdentity, cancellationToken);
+            return _nugetPackageFileService.GetEmbeddedLicenseAsync(_packageIdentity, cancellationToken);
         }
 
-        public async Task<Stream?> GetReadmeAsync(CancellationToken cancellationToken)
+        public async ValueTask<Stream?> GetReadmeAsync(CancellationToken cancellationToken)
         {
             if (_readmeUri != null)
             {

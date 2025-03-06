@@ -11,10 +11,10 @@ namespace NuGet.PackageManagement.UI
 {
     internal interface IEmbeddedResources
     {
-        Task<Stream?> GetIconAsync(CancellationToken cancellationToken);
+        ValueTask<Stream?> GetIconAsync(CancellationToken cancellationToken);
 
-        Task<Stream?> GetLicenseAsync(CancellationToken cancellationToken);
+        ValueTask<Stream?> GetLicenseAsync(CancellationToken cancellationToken);
 
-        Task<Stream?> GetReadmeAsync(CancellationToken cancellationToken);
+        ValueTask<Stream?> GetReadmeAsync(CancellationToken cancellationToken);
     }
 }
