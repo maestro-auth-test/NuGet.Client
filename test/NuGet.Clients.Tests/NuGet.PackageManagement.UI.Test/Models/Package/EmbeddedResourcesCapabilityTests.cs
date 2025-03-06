@@ -18,7 +18,7 @@ namespace NuGet.PackageManagement.UI.Test.Models
     public class EmbeddedResourcesCapabilityTests
     {
         [Fact]
-        public void Ctor_WithNullService_Throws()
+        public void Constructor_WithoutFileService_EnforcesRequiredParameter()
         {
             // Arrange
             var identity = new PackageIdentity("TestPackage", new NuGetVersion("1.0.0"));
@@ -28,7 +28,7 @@ namespace NuGet.PackageManagement.UI.Test.Models
         }
 
         [Fact]
-        public void Ctor_SetReadmeUri_ReadmeUriMatch()
+        public void Ctor_WithReadmeUri_ReadmeUriSet()
         {
             // Arrange
             var identity = new PackageIdentity("TestPackage", new NuGetVersion("1.0.0"));
@@ -44,7 +44,7 @@ namespace NuGet.PackageManagement.UI.Test.Models
 
 
         [Fact]
-        public void Ctor_WithNullPackage_Throws()
+        public void Constructor_WithoutIdentity_EnforcesRequiredParameter()
         {
             // Arrange
             var mockPackageFileService = new Mock<INuGetPackageFileService>();
