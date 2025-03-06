@@ -4,9 +4,9 @@
 #nullable enable
 
 using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Media.Imaging;
 
 namespace NuGet.PackageManagement.UI
 {
@@ -18,10 +18,10 @@ namespace NuGet.PackageManagement.UI
 
         Uri? ReadmeUri { get; }
 
-        Task<BitmapSource?> GetIconAsync(CancellationToken cancellationToken);
+        Task<Stream?> GetIconAsync(CancellationToken cancellationToken);
 
-        Task<string?> GetLicenseAsync(CancellationToken cancellationToken);
+        Task<Stream?> GetLicenseAsync(CancellationToken cancellationToken);
 
-        Task<string?> GetReadmeAsync(CancellationToken cancellationToken);
+        Task<Stream?> GetReadmeAsync(CancellationToken cancellationToken);
     }
 }
