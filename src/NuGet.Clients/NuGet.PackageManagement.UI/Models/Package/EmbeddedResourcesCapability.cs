@@ -15,14 +15,15 @@ namespace NuGet.PackageManagement.UI.Models.Package
     {
         private INuGetPackageFileService _nugetPackageFileService;
         private PackageIdentity _packageIdentity;
-        private Uri? _readmeUri;
 
         public EmbeddedResourcesCapability(INuGetPackageFileService nugetPackageFileService, PackageIdentity packageIdentity, Uri? readmeUri)
         {
             _nugetPackageFileService = nugetPackageFileService ?? throw new ArgumentNullException(nameof(nugetPackageFileService));
             _packageIdentity = packageIdentity ?? throw new ArgumentNullException(nameof(packageIdentity));
-            _readmeUri = readmeUri;
+            ReadmeUri = readmeUri;
         }
+
+        public Uri? ReadmeUri { get; }
 
         public ValueTask<Stream?> GetIconAsync(CancellationToken cancellationToken)
         {
@@ -36,9 +37,9 @@ namespace NuGet.PackageManagement.UI.Models.Package
 
         public async ValueTask<Stream?> GetReadmeAsync(CancellationToken cancellationToken)
         {
-            if (_readmeUri != null)
+            if (ReadmeUri != null)
             {
-                return await _nugetPackageFileService.GetReadmeAsync(_readmeUri, cancellationToken);
+                return await _nugetPackageFileService.GetReadmeAsync(ReadmeUri, cancellationToken);
             }
             return null;
         }

@@ -3,6 +3,7 @@
 
 #nullable enable
 
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +12,8 @@ namespace NuGet.PackageManagement.UI
 {
     internal interface IEmbeddedResources
     {
+        Uri? ReadmeUri { get; }
+
         ValueTask<Stream?> GetIconAsync(CancellationToken cancellationToken);
 
         ValueTask<Stream?> GetLicenseAsync(CancellationToken cancellationToken);
