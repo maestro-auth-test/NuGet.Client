@@ -154,6 +154,8 @@ namespace NuGet.Commands
 
         private static void ValidateFrameworks(PackageSpec spec, IEnumerable<string> files, ILogger logger)
         {
+            logger ??= NullLogger.Instance;
+
             if (spec.TargetFrameworks == null)
             {
                 throw RestoreSpecException.Create(Strings.SpecValidationNoFrameworks, files);

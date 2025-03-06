@@ -58,7 +58,6 @@ namespace NuGet.Commands.Test
             var spec = new DependencyGraphSpec();
             spec.AddRestore("a");
             var errors = new List<NuGetLogCode>();
-            string exception = "";
             var mockLogger = new Mock<ILogger>();
             mockLogger.Setup(l => l.Log(It.IsAny<ILogMessage>()))
                 .Callback((ILogMessage message) => { errors.Add(message.Code); });
@@ -82,18 +81,11 @@ namespace NuGet.Commands.Test
             spec.AddProject(project);
 
             // Act
-            try
-            {
-                SpecValidationUtility.ValidateDependencySpec(spec, new HashSet<string>(), mockLogger.Object);
-            }
-            catch (Exception ex)
-            {
-                exception = ex.Message;
-            }
+            Action act = () => SpecValidationUtility.ValidateDependencySpec(spec, new HashSet<string>(), mockLogger.Object);
 
             // Assert
+            act.Should().Throw<RestoreSpecException>().Where(e => e.Message.Contains(project.FilePath));
             errors.Should().Contain(NuGetLogCode.NU1105);
-            exception.Should().Contain(project.FilePath);
         }
 
         [Fact]
