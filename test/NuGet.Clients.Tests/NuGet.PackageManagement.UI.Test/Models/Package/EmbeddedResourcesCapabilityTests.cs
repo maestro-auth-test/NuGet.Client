@@ -18,7 +18,7 @@ namespace NuGet.PackageManagement.UI.Test.Models
     public class EmbeddedResourcesCapabilityTests
     {
         [Fact]
-        public void EmbeddedResourcesCapabilityCtor_WithNullService_Throws()
+        public void Ctor_WithNullService_Throws()
         {
             // Arrange
             var identity = new PackageIdentity("TestPackage", new NuGetVersion("1.0.0"));
@@ -27,9 +27,24 @@ namespace NuGet.PackageManagement.UI.Test.Models
             Assert.Throws<ArgumentNullException>(() => new EmbeddedResourcesCapability(null, identity, null));
         }
 
+        [Fact]
+        public void Ctor_SetReadmeUri_ReadmeUriMatch()
+        {
+            // Arrange
+            var identity = new PackageIdentity("TestPackage", new NuGetVersion("1.0.0"));
+            var mockPackageFileService = new Mock<INuGetPackageFileService>();
+            var uri = new Uri(@"C:\path\to\readme");
+
+            // Act
+            var capability = new EmbeddedResourcesCapability(mockPackageFileService.Object, identity, uri);
+
+            // Assert
+            Assert.Equal(uri, capability.ReadmeUri);
+        }
+
 
         [Fact]
-        public void EmbeddedResourcesCapabilityCtor_WithNullPackagee_Throws()
+        public void Ctor_WithNullPackage_Throws()
         {
             // Arrange
             var mockPackageFileService = new Mock<INuGetPackageFileService>();
