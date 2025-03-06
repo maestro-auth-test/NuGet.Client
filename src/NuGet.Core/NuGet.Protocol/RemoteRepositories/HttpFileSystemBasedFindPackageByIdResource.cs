@@ -36,7 +36,7 @@ namespace NuGet.Protocol
         private const int DefaultMaxRetries = 3;
         private int _maxRetries;
         private readonly HttpSource _httpSource;
-        private readonly ConcurrentDictionary<string, AsyncLazy<HashSet<NuGetVersion>>> _packageInfoCache =
+        private readonly ConcurrentDictionary<string, AsyncLazy<HashSet<NuGetVersion>>> _packageVersionsCache =
             new ConcurrentDictionary<string, AsyncLazy<HashSet<NuGetVersion>>>(StringComparer.OrdinalIgnoreCase);
         private readonly IReadOnlyList<Uri> _baseUris;
         private string _chosenBaseUri;
@@ -442,12 +442,12 @@ namespace NuGet.Protocol
             if (cacheContext.RefreshMemoryCache)
             {
                 // Update the cache
-                result = _packageInfoCache.AddOrUpdate(id, findPackages, (k, v) => findPackages(id));
+                result = _packageVersionsCache.AddOrUpdate(id, findPackages, (k, v) => findPackages(id));
             }
             else
             {
                 // Read the cache if it exists
-                result = _packageInfoCache.GetOrAdd(id, findPackages);
+                result = _packageVersionsCache.GetOrAdd(id, findPackages);
             }
 
             return await result;
