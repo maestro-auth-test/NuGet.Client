@@ -51,7 +51,7 @@ done
 
 function ReadGlobalVersion {
   local key=$1
-  local global_json_file="$repo_rootglobal.json"
+  local global_json_file="$repo_root/global.json"
 
   if command -v jq &> /dev/null; then
     _ReadGlobalVersion="$(jq -r ".[] | select(has(\"$key\")) | .\"$key\"" "$global_json_file")"
