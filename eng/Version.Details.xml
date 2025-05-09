@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
-  <Source Uri="https://github.com/dotnet/dotnet" Mapping="nuget-client" Sha="2732e35fb8438fa0b5f5f70386f6d23946ea0856" BarId="267591" />
+  <Source Uri="https://github.com/dotnet/dotnet" Mapping="nuget-client" Sha="b39b4061393697c537adbc3e0423dbc1b2cb90d9" BarId="267684" />
   <!--
     Currently this file is required to publish builds to .NET build asset registry.
     See https://github.com/dotnet/arcade/issues/2396 for details.
@@ -14,47 +14,47 @@
     Arcade flow and versions do not necessarily match what is currently consumed by repo build.
   -->
   <ProductDependencies>
-    <Dependency Name="Microsoft.Build" Version="17.15.0-preview-25258-111">
+    <Dependency Name="Microsoft.Build" Version="17.15.0-preview-25259-101">
       <Uri>https://github.com/dotnet/dotnet</Uri>
-      <Sha>2732e35fb8438fa0b5f5f70386f6d23946ea0856</Sha>
+      <Sha>b39b4061393697c537adbc3e0423dbc1b2cb90d9</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.FileProviders.Abstractions" Version="10.0.0-preview.5.25258.111">
+    <Dependency Name="Microsoft.Extensions.FileProviders.Abstractions" Version="10.0.0-preview.5.25259.101">
       <Uri>https://github.com/dotnet/dotnet</Uri>
-      <Sha>2732e35fb8438fa0b5f5f70386f6d23946ea0856</Sha>
+      <Sha>b39b4061393697c537adbc3e0423dbc1b2cb90d9</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.FileSystemGlobbing" Version="10.0.0-preview.5.25258.111">
+    <Dependency Name="Microsoft.Extensions.FileSystemGlobbing" Version="10.0.0-preview.5.25259.101">
       <Uri>https://github.com/dotnet/dotnet</Uri>
-      <Sha>2732e35fb8438fa0b5f5f70386f6d23946ea0856</Sha>
+      <Sha>b39b4061393697c537adbc3e0423dbc1b2cb90d9</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Web.Xdt" Version="10.0.0-preview.25258.111">
+    <Dependency Name="Microsoft.Web.Xdt" Version="10.0.0-preview.25259.101">
       <Uri>https://github.com/dotnet/dotnet</Uri>
-      <Sha>2732e35fb8438fa0b5f5f70386f6d23946ea0856</Sha>
+      <Sha>b39b4061393697c537adbc3e0423dbc1b2cb90d9</Sha>
     </Dependency>
-    <Dependency Name="System.CommandLine" Version="2.0.0-beta5.25258.111">
+    <Dependency Name="System.CommandLine" Version="2.0.0-beta5.25259.101">
       <Uri>https://github.com/dotnet/dotnet</Uri>
-      <Sha>2732e35fb8438fa0b5f5f70386f6d23946ea0856</Sha>
+      <Sha>b39b4061393697c537adbc3e0423dbc1b2cb90d9</Sha>
     </Dependency>
-    <Dependency Name="System.ComponentModel.Composition" Version="10.0.0-preview.5.25258.111">
+    <Dependency Name="System.ComponentModel.Composition" Version="10.0.0-preview.5.25259.101">
       <Uri>https://github.com/dotnet/dotnet</Uri>
-      <Sha>2732e35fb8438fa0b5f5f70386f6d23946ea0856</Sha>
+      <Sha>b39b4061393697c537adbc3e0423dbc1b2cb90d9</Sha>
     </Dependency>
-    <Dependency Name="System.Security.Cryptography.Pkcs" Version="10.0.0-preview.5.25258.111">
+    <Dependency Name="System.Security.Cryptography.Pkcs" Version="10.0.0-preview.5.25259.101">
       <Uri>https://github.com/dotnet/dotnet</Uri>
-      <Sha>2732e35fb8438fa0b5f5f70386f6d23946ea0856</Sha>
+      <Sha>b39b4061393697c537adbc3e0423dbc1b2cb90d9</Sha>
     </Dependency>
-    <Dependency Name="System.Security.Cryptography.Xml" Version="10.0.0-preview.5.25258.111">
+    <Dependency Name="System.Security.Cryptography.Xml" Version="10.0.0-preview.5.25259.101">
       <Uri>https://github.com/dotnet/dotnet</Uri>
-      <Sha>2732e35fb8438fa0b5f5f70386f6d23946ea0856</Sha>
+      <Sha>b39b4061393697c537adbc3e0423dbc1b2cb90d9</Sha>
     </Dependency>
-    <Dependency Name="System.Formats.Asn1" Version="10.0.0-preview.5.25258.111">
+    <Dependency Name="System.Formats.Asn1" Version="10.0.0-preview.5.25259.101">
       <Uri>https://github.com/dotnet/dotnet</Uri>
-      <Sha>2732e35fb8438fa0b5f5f70386f6d23946ea0856</Sha>
+      <Sha>b39b4061393697c537adbc3e0423dbc1b2cb90d9</Sha>
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="10.0.0-beta.25258.111">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="10.0.0-beta.25259.101">
       <Uri>https://github.com/dotnet/dotnet</Uri>
-      <Sha>2732e35fb8438fa0b5f5f70386f6d23946ea0856</Sha>
+      <Sha>b39b4061393697c537adbc3e0423dbc1b2cb90d9</Sha>
     </Dependency>
   </ToolsetDependencies>
 </Dependencies>
