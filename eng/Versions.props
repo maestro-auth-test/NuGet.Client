@@ -2,16 +2,4 @@
 <Project>
   <!-- File needed by the Maestro dependency flow service -->
   <PropertyGroup />
-  <!--Package versions-->
-  <PropertyGroup>
-    <MicrosoftBuildPackageVersion>17.15.0-preview-25260-104</MicrosoftBuildPackageVersion>
-    <MicrosoftExtensionsFileProvidersAbstractionsPackageVersion>10.0.0-preview.5.25260.104</MicrosoftExtensionsFileProvidersAbstractionsPackageVersion>
-    <MicrosoftExtensionsFileSystemGlobbingPackageVersion>10.0.0-preview.5.25260.104</MicrosoftExtensionsFileSystemGlobbingPackageVersion>
-    <MicrosoftWebXdtPackageVersion>10.0.0-preview.25260.104</MicrosoftWebXdtPackageVersion>
-    <SystemCommandLinePackageVersion>2.0.0-beta5.25260.104</SystemCommandLinePackageVersion>
-    <SystemComponentModelCompositionPackageVersion>10.0.0-preview.5.25260.104</SystemComponentModelCompositionPackageVersion>
-    <SystemSecurityCryptographyPkcsPackageVersion>10.0.0-preview.5.25260.104</SystemSecurityCryptographyPkcsPackageVersion>
-    <SystemSecurityCryptographyXmlPackageVersion>10.0.0-preview.5.25260.104</SystemSecurityCryptographyXmlPackageVersion>
-    <SystemFormatsAsn1PackageVersion>10.0.0-preview.5.25260.104</SystemFormatsAsn1PackageVersion>
-  </PropertyGroup>
 </Project>
