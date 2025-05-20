@@ -38,11 +38,9 @@ while [[ $# > 0 ]]; do
         --source-build|--sourcebuild|-sb)
             source_build=true
             product_build=true
-            shift
             ;;
         --product-build|--productbuild|-pb)
             product_build=true
-            shift
             ;;
         -*)
             # just eat this so we don't try to pass it along to MSBuild
@@ -57,7 +55,7 @@ done
 
 function ReadGlobalVersion {
   local key=$1
-  local global_json_file="$scriptroot/global.json"
+  local global_json_file="$repo_root/global.json"
 
   if command -v jq &> /dev/null; then
     _ReadGlobalVersion="$(jq -r ".[] | select(has(\"$key\")) | .\"$key\"" "$global_json_file")"
@@ -92,7 +90,7 @@ fi
 
 ReadGlobalVersion Microsoft.DotNet.Arcade.Sdk
 export ARCADE_VERSION=$_ReadGlobalVersion
-export NUGET_PACKAGES=${repo_root}artifacts/sb/package-cache/
+export NUGET_PACKAGES=${repo_root}artifacts/.packages/
 
 properties="$properties /p:DotNetBuildRepo=$product_build"
 properties="$properties /p:DotNetBuildSourceOnly=$source_build"
@@ -101,4 +99,4 @@ properties="$properties /p:Configuration=$configuration"
 properties="$properties /p:DotNetBuildRepo=true"
 properties="$properties /p:RepoRoot=$repo_root"
 
-"$DOTNET" msbuild -v:$verbosity "$scriptroot/dotnet-build.proj" "/bl:${repo_root}artifacts/sb/log/source-inner-build.binlog" $properties $args
+"$DOTNET" msbuild -v:$verbosity "$scriptroot/dotnet-build.proj" "/bl:${repo_root}artifacts/log/${configuration}/Build.binlog" $properties $args
