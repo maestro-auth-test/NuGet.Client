@@ -5,6 +5,7 @@
     "allowPrerelease": true
   },
   "msbuild-sdks": {
-    "Microsoft.Build.NoTargets": "3.7.0"
+    "Microsoft.Build.NoTargets": "3.7.0",
+    "Microsoft.DotNet.Arcade.Sdk": "10.0.0-beta.25260.104"
   }
 }
