@@ -886,6 +886,11 @@ Pour plus d'informations, visitez https://docs.nuget.org/docs/reference/command-
         <target state="translated">Chemin d’accès à un fichier de projet ou de solution, ou à un répertoire.</target>
         <note />
       </trans-unit>
+      <trans-unit id="PackageUpdate_AllPackagesAlreadyUpToDate">
+        <source>All packages are already up to date.</source>
+        <target state="new">All packages are already up to date.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="PackageUpdate_FinalSummary">
         <source>Updated {0} packages in {1} scanned packages.</source>
         <target state="new">Updated {0} packages in {1} scanned packages.</target>
@@ -1250,11 +1255,6 @@ La recherche est une comparaison de chaînes qui ne respecte pas la casse à l�
       <trans-unit id="TrustedSignerNameToRemove">
         <source>The name of the existing trusted signer to remove.</source>
         <target state="translated">Nom du signataire approuvé existant à supprimer.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unsupported_MoreThanOnePackage">
-        <source>Unsupported: Updating more than one package is not yet supported</source>
-        <target state="translated">Non pris en charge : La mise à jour de plusieurs packages n’est pas encore prise en charge</target>
         <note />
       </trans-unit>
       <trans-unit id="Unsupported_PackageSourceMapping">

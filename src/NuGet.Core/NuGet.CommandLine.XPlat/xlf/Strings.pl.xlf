@@ -886,6 +886,11 @@ Aby uzyskać więcej informacji, odwiedź stronę https://docs.nuget.org/docs/re
         <target state="translated">Ścieżka do pliku projektu lub rozwiązania albo katalogu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="PackageUpdate_AllPackagesAlreadyUpToDate">
+        <source>All packages are already up to date.</source>
+        <target state="new">All packages are already up to date.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="PackageUpdate_FinalSummary">
         <source>Updated {0} packages in {1} scanned packages.</source>
         <target state="new">Updated {0} packages in {1} scanned packages.</target>
@@ -1250,11 +1255,6 @@ Wyszukiwanie polega na porównywaniu łańcuchów bez rozróżniania wielkości 
       <trans-unit id="TrustedSignerNameToRemove">
         <source>The name of the existing trusted signer to remove.</source>
         <target state="translated">Imię istniejącej osoby podpisującej do usunięcia.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unsupported_MoreThanOnePackage">
-        <source>Unsupported: Updating more than one package is not yet supported</source>
-        <target state="translated">Nieobsługiwane: aktualizowanie więcej niż jednego pakietu nie jest jeszcze obsługiwane</target>
         <note />
       </trans-unit>
       <trans-unit id="Unsupported_PackageSourceMapping">

@@ -886,6 +886,11 @@ For more information, visit https://docs.nuget.org/docs/reference/command-line-r
         <target state="translated">프로젝트, 솔루션 파일 또는 디렉터리의 경로입니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="PackageUpdate_AllPackagesAlreadyUpToDate">
+        <source>All packages are already up to date.</source>
+        <target state="new">All packages are already up to date.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="PackageUpdate_FinalSummary">
         <source>Updated {0} packages in {1} scanned packages.</source>
         <target state="new">Updated {0} packages in {1} scanned packages.</target>
@@ -1251,11 +1256,6 @@ The search is a case-insensitive string comparison using the supplied value, whi
       <trans-unit id="TrustedSignerNameToRemove">
         <source>The name of the existing trusted signer to remove.</source>
         <target state="translated">제거할 기존 신뢰할 수 있는 서명자의 이름입니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unsupported_MoreThanOnePackage">
-        <source>Unsupported: Updating more than one package is not yet supported</source>
-        <target state="translated">지원되지 않음: 둘 이상의 패키지 업데이트는 아직 지원되지 않음</target>
         <note />
       </trans-unit>
       <trans-unit id="Unsupported_PackageSourceMapping">

@@ -886,6 +886,11 @@ Daha fazla bilgi için bkz. https://docs.nuget.org/docs/reference/command-line-r
         <target state="translated">Bir proje veya çözüm dosyasına ya da dizine giden yol.</target>
         <note />
       </trans-unit>
+      <trans-unit id="PackageUpdate_AllPackagesAlreadyUpToDate">
+        <source>All packages are already up to date.</source>
+        <target state="new">All packages are already up to date.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="PackageUpdate_FinalSummary">
         <source>Updated {0} packages in {1} scanned packages.</source>
         <target state="new">Updated {0} packages in {1} scanned packages.</target>
@@ -1250,11 +1255,6 @@ Arama, sağlanan değeri kullanan büyük/küçük harfe duyarsız bir dize kar�
       <trans-unit id="TrustedSignerNameToRemove">
         <source>The name of the existing trusted signer to remove.</source>
         <target state="translated">Kaldırılacak mevcut güvenilen imzalayanın adı.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unsupported_MoreThanOnePackage">
-        <source>Unsupported: Updating more than one package is not yet supported</source>
-        <target state="translated">Desteklenmiyor: Birden fazla paketin güncelleştirilmesi henüz desteklenmiyor</target>
         <note />
       </trans-unit>
       <trans-unit id="Unsupported_PackageSourceMapping">
