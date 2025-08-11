@@ -15,7 +15,7 @@ param (
 )
 
 . $PSScriptRoot\..\common\tools.ps1
-
+# hmm
 function Build {
   $bl = if ($binaryLog) { '/bl:' + (Join-Path $LogDir 'Build.binlog') } else { '' }
 
