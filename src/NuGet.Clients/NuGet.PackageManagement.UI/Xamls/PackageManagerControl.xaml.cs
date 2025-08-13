@@ -62,7 +62,6 @@ namespace NuGet.PackageManagement.UI
         private bool _isRefreshRequired;
         private bool _isExecutingAction; // Signifies where an action is being executed. Should be updated in a coordinated fashion with IsEnabled
         private RestartRequestBar _restartBar;
-        private PRMigratorBar _migratorBar;
         private bool _missingPackageStatus;
         private bool _loadedAndInitialized = false;
         private bool _recommendPackages = false;
@@ -788,15 +787,6 @@ namespace NuGet.PackageManagement.UI
                 Model.Context.PackageRestoreManager.PackagesMissingStatusChanged
                     -= PackageRestoreManager_PackagesMissingStatusChanged;
             }
-        }
-
-        private void AddMigratorBar()
-        {
-            _migratorBar = new PRMigratorBar(Model);
-
-            DockPanel.SetDock(_migratorBar, Dock.Top);
-
-            _root.Children.Insert(0, _migratorBar);
         }
 
         private void PackageRestoreManager_PackagesMissingStatusChanged(object sender, PackagesMissingStatusEventArgs e)
