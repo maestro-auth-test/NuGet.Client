@@ -954,7 +954,7 @@ Per altre informazioni, vedere https://docs.nuget.org/docs/reference/command-lin
       </trans-unit>
       <trans-unit id="PackageUpdate_UpdatedMessage">
         <source>Updating {0} {1} to {2}.</source>
-        <target state="needs-review-translation">Aggiornato {0} {1} a {2}.</target>
+        <target state="new">Updating {0} {1} to {2}.</target>
         <note>{0}: package id
 {1}: existing version
 {2}: new version</note>

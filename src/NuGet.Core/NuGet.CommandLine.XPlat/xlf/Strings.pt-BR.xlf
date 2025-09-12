@@ -954,7 +954,7 @@ Para obter mais informações, acesse https://docs.nuget.org/docs/reference/comm
       </trans-unit>
       <trans-unit id="PackageUpdate_UpdatedMessage">
         <source>Updating {0} {1} to {2}.</source>
-        <target state="needs-review-translation">{0} {1} atualizado para {2}.</target>
+        <target state="new">Updating {0} {1} to {2}.</target>
         <note>{0}: package id
 {1}: existing version
 {2}: new version</note>

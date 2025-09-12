@@ -954,7 +954,7 @@ Aby uzyskać więcej informacji, odwiedź stronę https://docs.nuget.org/docs/re
       </trans-unit>
       <trans-unit id="PackageUpdate_UpdatedMessage">
         <source>Updating {0} {1} to {2}.</source>
-        <target state="needs-review-translation">Zaktualizowano {0} {1} do {2}.</target>
+        <target state="new">Updating {0} {1} to {2}.</target>
         <note>{0}: package id
 {1}: existing version
 {2}: new version</note>
