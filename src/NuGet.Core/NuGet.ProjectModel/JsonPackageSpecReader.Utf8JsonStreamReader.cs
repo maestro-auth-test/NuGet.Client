@@ -15,6 +15,7 @@ using NuGet.Configuration;
 using NuGet.Frameworks;
 using NuGet.LibraryModel;
 using NuGet.RuntimeModel;
+using NuGet.Shared;
 using NuGet.Versioning;
 
 namespace NuGet.ProjectModel
@@ -999,7 +1000,7 @@ namespace NuGet.ProjectModel
                     }
                     else if (jsonReader.ValueTextEquals(UsingMicrosoftNETSdk))
                     {
-                        usingMicrosoftNetSdk = jsonReader.ReadNextTokenAsBoolOrThrowAnException(UsingMicrosoftNETSdk);
+                        usingMicrosoftNetSdk = jsonReader.ReadNextTokenAsBoolOrThrowAnException(UsingMicrosoftNETSdk, Strings.Invalid_AttributeValue);
                     }
                     else if (jsonReader.ValueTextEquals(SdkAnalysisLevel))
                     {
@@ -1025,7 +1026,7 @@ namespace NuGet.ProjectModel
                     }
                     else if (jsonReader.ValueTextEquals(UseLegacyDependencyResolverPropertyName))
                     {
-                        useLegacyDependencyResolver = jsonReader.ReadNextTokenAsBoolOrThrowAnException(UseLegacyDependencyResolverPropertyName);
+                        useLegacyDependencyResolver = jsonReader.ReadNextTokenAsBoolOrThrowAnException(UseLegacyDependencyResolverPropertyName, Strings.Invalid_AttributeValue);
                     }
                     else
                     {
