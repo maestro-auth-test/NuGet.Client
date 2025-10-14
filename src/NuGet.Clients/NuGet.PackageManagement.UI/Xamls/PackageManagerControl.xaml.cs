@@ -1570,6 +1570,25 @@ namespace NuGet.PackageManagement.UI
             }
         }
 
+        public void SelectPackageFilterOptions(PackageFilterOptions filterOptions)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            if (filterOptions == null)
+            {
+                return;
+            }
+
+            if (filterOptions.ShowPrerelease.HasValue)
+            {
+                _topPanel.CheckboxPrerelease.IsChecked = filterOptions.ShowPrerelease;
+            }
+
+            if (filterOptions.ShowOnlyVulnerable.HasValue)
+            {
+                _topPanel._checkboxVulnerabilities.IsChecked = filterOptions.ShowOnlyVulnerable;
+            }
+        }
+
         private void CleanUp()
         {
             NuGetUIThreadHelper.JoinableTaskFactory.Run(async () =>
