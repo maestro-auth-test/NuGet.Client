@@ -182,7 +182,7 @@ internal static class PackageUpdateCommandRunner
     }
 
     private static async Task<(List<PackageUpdateResult> vulnerablePackages, int packagesScanned)> SelectVulnerablePackagesToUpdateAsync(
-        IReadOnlyList<Package>? packages,
+        IReadOnlyList<PackageWithVersionRange>? packages,
         DependencyGraphSpec dgSpec,
         ILoggerWithColor logger,
         IPackageUpdateIO packageUpdateIO,
@@ -283,7 +283,7 @@ internal static class PackageUpdateCommandRunner
     }
 
     internal static async Task<List<PackageUpdateResult>> SelectPackagesToUpdateAsync(
-        IReadOnlyList<Package> packages,
+        IReadOnlyList<PackageWithVersionRange> packages,
         PackageSpec project,
         ILoggerWithColor logger,
         IPackageUpdateIO packageUpdateIO,
@@ -499,7 +499,7 @@ internal static class PackageUpdateCommandRunner
         return successful ? (packagesToUpdate, allProjectPackages.Count) : (null, allProjectPackages.Count);
     }
 
-    private static List<(Package identity, List<string> tfms)>? GetAllPackagesReferencedByProject(PackageSpec project, ILoggerWithColor logger)
+    private static List<(PackageWithVersionRange identity, List<string> tfms)>? GetAllPackagesReferencedByProject(PackageSpec project, ILoggerWithColor logger)
     {
         var allPackages = new Dictionary<string, (VersionRange version, List<string> tfms, bool hasError)>(StringComparer.OrdinalIgnoreCase);
         bool hasErrors = false;
@@ -543,10 +543,10 @@ internal static class PackageUpdateCommandRunner
             return null;
         }
 
-        List<(Package package, List<string> tfms)> result = new(allPackages.Count);
+        List<(PackageWithVersionRange package, List<string> tfms)> result = new(allPackages.Count);
         foreach (var kvp in allPackages)
         {
-            var package = new Package { Id = kvp.Key, VersionRange = kvp.Value.version };
+            var package = new PackageWithVersionRange { Id = kvp.Key, VersionRange = kvp.Value.version };
             result.Add((package, kvp.Value.tfms));
         }
 
